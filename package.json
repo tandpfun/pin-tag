@@ -1,27 +1,41 @@
 {
-  "name": "website",
+  "name": "@pin-tag/website",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "generate": "dotenv -e .env.local -- prisma generate",
+    "migrate": "dotenv -e .env.local -- prisma migrate",
+    "email-preview": "email preview ./src/email --port 3001",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@faker-js/faker": "^8.3.1",
+    "@fortawesome/fontawesome-svg-core": "^6.5.1",
+    "@fortawesome/free-brands-svg-icons": "^6.5.1",
+    "@fortawesome/free-solid-svg-icons": "^6.5.1",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "@prisma/client": "^5.6.0",
+    "@types/nodemailer": "^6.4.14",
+    "jsx-email": "^1.7.2",
+    "next": "14.0.3",
+    "nodemailer": "^6.9.8",
     "react": "^18",
-    "react-dom": "^18",
-    "next": "14.0.3"
+    "react-dom": "^18"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
-    "postcss": "^8",
-    "tailwindcss": "^3.3.0",
     "eslint": "^8",
-    "eslint-config-next": "14.0.3"
+    "eslint-config-next": "14.0.3",
+    "postcss": "^8",
+    "prisma": "^5.6.0",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
   }
 }

@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id        String  @id
+  email     String  @unique
+  firstName String
+  lastName  String
+  gradYear  Int
+  avatar    String?
+  role      Role    @default(USER)
+
+  activeGameId String?
+  participants Participant[]
+
+  authToken AuthToken?
+}
+
+model AuthToken {
+  id     String @id @default(cuid())
+  userId String @unique
+  token  String @unique
+  uses   Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Game {
+  id         String  @id @default(cuid())
+  name       String
+  isActive   Boolean @default(false)
+  isJoinable Boolean @default(false)
+
+  participants Participant[]
+}
+
+model Participant {
+  id     String @id @default(cuid())
+  userId String
+  gameId String
+
+  targetId          String?       @unique
+  eliminatedTargets Participant[] @relation("Elimination")
+
+  isAlive        Boolean   @default(true)
+  eliminatedById String?
+  eliminatedAt   DateTime?
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game         Game         @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  target       Participant? @relation("TargetChain", fields: [targetId], references: [id])
+  assassin     Participant? @relation("TargetChain")
+  eliminatedBy Participant? @relation("Elimination", fields: [eliminatedById], references: [id])
+
+  @@unique([userId, gameId])
+}
