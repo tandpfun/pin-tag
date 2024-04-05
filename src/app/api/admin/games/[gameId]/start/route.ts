@@ -1,5 +1,6 @@
 import { userAuth } from '@/lib/auth/hooks';
 import { createGame, updateGame } from '@/lib/game/database';
+import { sendTargetEmail } from '@/lib/game/email';
 import { Game, Role } from '@prisma/client';
 
 export async function POST(
@@ -15,7 +16,11 @@ export async function POST(
 
   const game = await prisma.game.findUnique({
     where: { id: gameId },
-    include: { participants: true },
+    include: {
+      participants: {
+        include: { user: true, target: { include: { user: true } } },
+      },
+    },
   });
   if (!game) return Response.json({ error: 'Unknown game' }, { status: 400 });
 
@@ -26,7 +31,7 @@ export async function POST(
     );
 
   // Make sure every participant has a target
-  if (game.participants.some((p) => !p.targetId))
+  if (game.participants.some((p) => !p.target))
     return Response.json(
       { error: 'All participants must have a target' },
       { status: 400 }
@@ -39,7 +44,17 @@ export async function POST(
     isJoinable: false,
   });
 
-  // TODO: Email all participants their target
+  // Send emails to all participants
+  await Promise.all(
+    game.participants.map(async (p) =>
+      sendTargetEmail({
+        user: p.user,
+        targetUser: p.target!.user,
+        gameId: gameId,
+        isNew: false,
+      })
+    )
+  );
 
   return Response.json(startedGame, {
     status: 200,

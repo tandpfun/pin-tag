@@ -1,8 +1,35 @@
 import { PrismaClient } from '@prisma/client';
 import { getJoinableGames } from './database';
+import prisma from '../prisma';
 
 export async function useJoinableGames() {
   return await getJoinableGames();
+}
+
+export async function getGameList() {
+  return await prisma.game.findMany({ include: { participants: true } });
+}
+
+export async function getGame(gameId: string) {
+  return await prisma.game.findUnique({
+    where: { id: gameId },
+    include: {
+      participants: {
+        include: {
+          user: true,
+          target: { include: { user: true } },
+          assassin: { include: { user: true } },
+          eliminatedBy: { include: { user: true } },
+          eliminatedTargets: true,
+        },
+      },
+      actionLogs: {
+        include: {
+          user: true,
+        },
+      },
+    },
+  });
 }
 
 export async function getGameStatus(gameId: string, userId?: string) {
@@ -56,6 +83,22 @@ export async function getGameStatus(gameId: string, userId?: string) {
       place,
     },
   };
+}
+
+export async function getEliminationLeaderboard(gameId: string) {
+  const game = await prisma.game.findUnique({
+    where: { id: gameId }, // Make sure user is in game
+    include: {
+      participants: { include: { user: true, eliminatedTargets: true } },
+    },
+  });
+  if (!game) return null;
+
+  const sortedParticipants = game.participants.sort(
+    (a, b) => b.eliminatedTargets.length - a.eliminatedTargets.length
+  );
+
+  return sortedParticipants;
 }
 
 export function gradYearToGrade(gradYear: number) {

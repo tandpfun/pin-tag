@@ -25,7 +25,7 @@ export async function POST(
 
   for (let i = 0; i < 50; i++) {
     const user = await createUser({
-      email: faker.internet.email(),
+      email: `spam.codingpro+${faker.person.firstName()}@gmail.com`,
       firstName: faker.person.firstName(),
       lastName: faker.person.lastName(),
       gradYear: 2024,

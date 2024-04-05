@@ -1,8 +1,12 @@
 import { userAuth } from '@/lib/auth/hooks';
-import { getGameStatus, gradYearToGrade } from '@/lib/game/hooks';
+import {
+  getEliminationLeaderboard,
+  getGameStatus,
+  gradYearToGrade,
+} from '@/lib/game/hooks';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
-import React from 'react';
+import React, { use } from 'react';
 import TargetCard from './TargetCard';
 import { Participant, User } from '@prisma/client';
 import GameCard from './GameCard';
@@ -39,6 +43,8 @@ export default async function GamePage({
 
   if (!user || !gameStatus) redirect('/');
 
+  const elimLeaderboard = await getEliminationLeaderboard(params.gameId);
+
   const { game, participant } = gameStatus;
   const targetUser = participant.target?.user;
 
@@ -51,8 +57,7 @@ export default async function GamePage({
             participant.isAlive ? (
               <div className="flex flex-col gap-4">
                 <div className="mt-2 sm:mt-4">
-                  {game.aliveCount}/{game.participantCount} participants
-                  remaining.
+                  {game.aliveCount}/{game.participantCount} participants remain.
                 </div>
 
                 <GameCard
@@ -61,23 +66,12 @@ export default async function GamePage({
                   fromColor="text-green-500"
                 >
                   <span className="text-green-500">Agent {user.firstName}</span>
-                  , you&apos;ve been assigned to a target! When you pin your
-                  target, you must let us know immediately by clicking the
-                  &quot;eliminate&quot; button.
-                </GameCard>
-
-                <GameCard
-                  className="bg-blue-600/10"
-                  from="Mission Tracker"
-                  fromColor="text-blue-600"
-                >
-                  Your task is to pin{' '}
-                  <span className="text-blue-600">
+                  , your task is to pin{' '}
+                  <span className="text-green-500">
                     {userToFullName(targetUser)}
                   </span>
-                  . Once you pin them, you must ask them who their target is.
-                  You will need to verify their next target here to eliminate
-                  them.
+                  . When you pin your target, you must let us know immediately
+                  by clicking the &quot;eliminate&quot; button below.
                 </GameCard>
 
                 <TargetCard
@@ -90,6 +84,55 @@ export default async function GamePage({
                   gameId={game.id}
                   targetId={participant.target?.id}
                 />
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {elimLeaderboard && (
+                    <GameCard
+                      className="bg-blue-600/10 w-full"
+                      from="Leaderboard"
+                      fromColor="text-blue-600"
+                    >
+                      <div className="text-sm">
+                        <ol className="list-decimal list-inside">
+                          {elimLeaderboard?.slice(0, 10).map((p, i) => (
+                            <li
+                              key={p.userId}
+                              className={p.userId == user.id ? 'font-bold' : ''}
+                            >
+                              {p.user.firstName} {p.user.lastName} (
+                              {p.eliminatedTargets.length} pins)
+                            </li>
+                          ))}
+                        </ol>
+                        {!elimLeaderboard
+                          ?.slice(0, 10)
+                          .find((p) => p.userId == user.id) && (
+                          <div className="font-bold">
+                            {elimLeaderboard
+                              .map((p) => p.userId)
+                              .indexOf(user.id) + 1}
+                            . {user.firstName} {user.lastName} (
+                            {participant.eliminatedTargets.length} pins)
+                          </div>
+                        )}
+                      </div>
+                    </GameCard>
+                  )}
+
+                  <GameCard
+                    className="bg-blue-600/10 hidden"
+                    from="Leaderboard"
+                    fromColor="text-blue-600"
+                  >
+                    Your task is to pin{' '}
+                    <span className="text-blue-600">
+                      {userToFullName(targetUser)}
+                    </span>
+                    . Once you pin them, you must ask them who their target is.
+                    You will need to verify their next target here to eliminate
+                    them.
+                  </GameCard>
+                </div>
               </div>
             ) : (
               <div>

@@ -21,7 +21,6 @@ import * as React from 'react';
 export const TemplateName = 'TargetEmail';
 
 const main = {
-  //backgroundColor: 'black',
   color: 'white',
   fontFamily:
     'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
@@ -33,27 +32,23 @@ function gradYearToGrade(gradYear: number) {
   return grades[currentYear - gradYear];
 }
 
-const container = {
-  padding: '20px',
-  marginBottom: '64px',
-};
-
 export const Template = ({
   name = 'Thijs',
   target = { firstName: 'John', lastName: 'Doe', gradYear: 2024 },
-  eliminationLink,
+  eliminationLink = 'https://google.com',
+  isNew = false,
 }: {
   name: string;
   target: { firstName: string; lastName: string; gradYear: number };
   eliminationLink: string;
+  isNew: boolean;
 }) => (
   <Tailwind production>
     <Head>
       <ColorScheme mode="dark only" />
     </Head>
-    <Preview>You've been assigned a target!</Preview>
     <Body style={main}>
-      <Section bgcolor="#07101e" className="sm:p-8 p-4">
+      <Section bgcolor="#07101e" className="p-4">
         <Row>
           <Column>
             <Heading className="font-bold my-0 w-fit border-2 border-green-600 px-2 border-solid">
@@ -68,59 +63,50 @@ export const Template = ({
               ,
               <br />
               <br />
-              You've been assigned a target! Your goal is to pin{' '}
-              <span className="text-green-500">
+              Your {isNew ? 'target has been updated. Your NEW' : ''} target is{' '}
+              <span className="text-green-500 font-bold">
                 {target.firstName} {target.lastName} &apos;
                 {target.gradYear.toString().substring(2)}
               </span>
-              . Be sure to follow all of the rules, which are listed below.
+              .
               <br />
               <br />
-              Once you pin{' '}
-              <span className="text-green-500">{target.firstName}</span>
-              , tap the "Eliminate" button below to receive your next target.
-              <br />
-              <br />
-              Your target will be updated periodically throughout the event, so
-              be sure to check your email often!
+              Open your{' '}
+              <Button
+                href={eliminationLink}
+                className="text-blue-500 underline font-bold"
+              >
+                <u>mission portal</u>
+              </Button>{' '}
+              to mark them as eliminated, and receive your next target. Your
+              target may be updated during the game, so be sure to check your
+              email often!
               <br />
               <br />
               Best of luck,
               <br />
-              <span className="text-green-500">FBI Director Kim</span>
+              <span className="text-green-500">
+                FBI Directors Nate & Mateus
+              </span>
             </Text>
           </Column>
         </Row>
         <Row className="mt-4 p-4" bgcolor="#321821">
           <Column>
             <Heading className="font-bold my-0 text-red-600 mb-2" as="h3">
-              TARGET
+              YOUR {isNew ? 'NEW' : ''} TARGET
             </Heading>
             <Text className="!my-0">
-              Name: {target.firstName} {target.lastName}
+              <strong>Name:</strong> {target.firstName} {target.lastName}
               <br />
-              Grade: {gradYearToGrade(target.gradYear)}
-            </Text>
-            <Button
-              href={eliminationLink}
-              className="px-3 py-2 border-2 border-red-500 border-solid mt-2 !text-white"
-            >
-              Eliminate {target.firstName}
-            </Button>
-          </Column>
-        </Row>
-        <Row className="mt-4 p-4" bgcolor="#241946">
-          <Column>
-            <Heading className="font-bold my-0 text-purple-600 mb-2" as="h3">
-              RULES
-            </Heading>
-            <Text className="!my-0">
-              <ul className="m-0 pl-4">
-                <li>Game hours: 8:50am - 4:00pm</li>
-                <li>No pinning during class periods</li>
-                <li>Safe zones: classrooms, library</li>
-                <li>No running, sneak up on your target instead</li>
-              </ul>
+              <strong>Grade</strong>: {gradYearToGrade(target.gradYear)}
+              <br />
+              <Button
+                href={eliminationLink}
+                className="px-3 py-2 border-2 border-red-500 border-solid mt-2 !text-white"
+              >
+                Open Mission Portal
+              </Button>
             </Text>
           </Column>
         </Row>

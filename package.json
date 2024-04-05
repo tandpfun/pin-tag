@@ -7,6 +7,7 @@
     "build": "next build",
     "generate": "dotenv -e .env.local -- prisma generate",
     "migrate": "dotenv -e .env.local -- prisma migrate",
+    "studio": "dotenv -e .env.local -- prisma studio",
     "email-preview": "email preview ./src/email --port 3001",
     "start": "next start",
     "lint": "next lint"
@@ -24,7 +25,8 @@
     "next": "14.0.3",
     "nodemailer": "^6.9.8",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "reactflow": "^11.10.4"
   },
   "devDependencies": {
     "@types/node": "^20",

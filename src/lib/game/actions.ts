@@ -1,8 +1,9 @@
 'use server';
 
-import { Participant } from '@prisma/client';
+import { ActionLogType, Participant } from '@prisma/client';
 import { userAuth } from '../auth/hooks';
 import { updateParticipants } from './database';
+import { sendEliminationEmail, sendTargetEmail } from './email';
 
 export async function requestElimination({
   targetId,
@@ -40,16 +41,44 @@ export async function eliminateTarget({
 
   const participant = await prisma.participant.findUnique({
     where: { userId_gameId: { userId: user.id, gameId } },
-    include: { target: true },
+    include: {
+      target: { include: { user: true, target: { include: { user: true } } } },
+      user: true,
+    },
   });
+
   if (!participant) return { error: 'Invalid game' };
+  if (!participant.target?.target)
+    return { error: 'Target does not have a target' };
 
   // make sure the participant's target is what they specify
   if (participant.targetId !== targetId || participant.target == null)
     return { error: 'Invalid target' };
 
   // TODO: Add checks for game hours
-  // TODO: Send emails
+
+  // Send new target and elimination email
+  await sendTargetEmail({
+    user,
+    targetUser: participant.target.target.user,
+    gameId,
+    isNew: true,
+  });
+  await sendEliminationEmail({
+    user: participant.target.user,
+    assassinUser: user,
+  });
+
+  // Create action log
+  await prisma.actionLog.create({
+    data: {
+      type: ActionLogType.ELIMINATE,
+      gameId,
+      participantId: participant.id,
+      targetId: participant.targetId,
+      timestamp: new Date(),
+    },
+  });
 
   const updatedTarget = {
     id: participant.targetId,

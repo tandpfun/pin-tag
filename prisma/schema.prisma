@@ -15,6 +15,14 @@ enum Role {
   USER
 }
 
+enum ActionLogType {
+  ELIMINATE
+  START
+  SHUFFLE
+  EMAIL
+  MESSAGE
+}
+
 model User {
   id        String  @id
   email     String  @unique
@@ -26,6 +34,7 @@ model User {
 
   activeGameId String?
   participants Participant[]
+  actionLogs   ActionLog[]
 
   authToken AuthToken?
 }
@@ -46,6 +55,22 @@ model Game {
   isJoinable Boolean @default(false)
 
   participants Participant[]
+  actionLogs   ActionLog[]
+}
+
+model ActionLog {
+  id        String   @id @default(cuid())
+  gameId    String
+  timestamp DateTime
+
+  type          ActionLogType
+  message       String?
+  targetId      String?
+  participantId String?
+  userId        String?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: NoAction)
+  game Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
 }
 
 model Participant {

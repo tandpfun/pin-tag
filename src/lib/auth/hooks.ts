@@ -1,5 +1,3 @@
-import { PrismaClient } from '@prisma/client';
-import { PrismaAdapter } from '@auth/prisma-adapter';
 import { cookies } from 'next/headers';
 import { getUserByToken } from './database';
 
