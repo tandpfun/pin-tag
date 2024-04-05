@@ -24,9 +24,11 @@ setInterval(async () => {
   emailQueue.delete(nextEmail);
 
   if (nextEmail) {
-    await transport.sendMail(nextEmail);
+    await transport
+      .sendMail(nextEmail)
+      .catch((err) => console.error(`[EMAIL ERROR] ${err.message}`));
   }
-}, 250);
+}, 1000);
 
 export async function sendTargetEmail({
   user,

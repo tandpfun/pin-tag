@@ -18,7 +18,7 @@ export async function startGame({ gameId }: { gameId: string }) {
       },
     },
   });
-  if (!game) return { error: 'Unauthorized' };
+  if (!game) return { error: 'Game not found' };
 
   if (game.participants.length < 2)
     return { error: 'Must have at least 2 participants' };
@@ -36,14 +36,16 @@ export async function startGame({ gameId }: { gameId: string }) {
 
   // Send emails to all participants
   await Promise.all(
-    game.participants.map(async (p) =>
-      sendTargetEmail({
-        user: p.user,
-        targetUser: p.target!.user,
-        gameId: gameId,
-        isNew: false,
-      })
-    )
+    game.participants
+      .filter((p) => p.isAlive && p.target != null)
+      .map(async (p) =>
+        sendTargetEmail({
+          user: p.user,
+          targetUser: p.target!.user,
+          gameId: gameId,
+          isNew: false,
+        })
+      )
   );
 
   // Log start to action log
@@ -51,6 +53,53 @@ export async function startGame({ gameId }: { gameId: string }) {
     data: {
       gameId: game.id,
       type: ActionLogType.START,
+      userId: user.id,
+      timestamp: new Date(),
+    },
+  });
+
+  return { success: true };
+}
+
+export async function emailTargets({ gameId }: { gameId: string }) {
+  // Make sure the user is logged in
+  const user = await userAuth();
+  if (!user || user.role !== Role.ADMIN) return { error: 'Unauthorized' };
+
+  const game = await prisma.game.findUnique({
+    where: { id: gameId },
+    include: {
+      participants: {
+        include: { user: true, target: { include: { user: true } } },
+      },
+    },
+  });
+  if (!game) return { error: 'Game not found' };
+
+  if (game.isActive) return { error: 'Game must be started' };
+
+  if (game.participants.length < 1)
+    return { error: 'Must have at least 1 participant' };
+
+  // Send emails to all living participants
+  await Promise.all(
+    game.participants
+      .filter((p) => p.isAlive && p.target != null) // Only send to participants with a target
+      .map(async (p) =>
+        sendTargetEmail({
+          user: p.user,
+          targetUser: p.target!.user,
+          gameId: gameId,
+          isNew: false,
+        })
+      )
+  );
+
+  // Log start to action log
+  await prisma.actionLog.create({
+    data: {
+      gameId: game.id,
+      type: ActionLogType.EMAIL,
       userId: user.id,
       timestamp: new Date(),
     },
@@ -67,9 +116,7 @@ export async function shuffleTargets({ gameId }: { gameId: string }) {
   const game = await prisma.game.findUnique({
     where: { id: gameId },
     include: {
-      participants: {
-        include: { user: true, target: { include: { user: true } } },
-      },
+      participants: true,
     },
   });
   if (!game) return { error: 'Unauthorized' };

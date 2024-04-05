@@ -1,9 +1,17 @@
 'use client';
 
 import GameCard from '@/app/game/[gameId]/GameCard';
+import { emailTargets, shuffleTargets, startGame } from '@/lib/admin/actions';
+import {
+  faCircleNotch,
+  faWarning,
+  faXmark,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ActionLog, ActionLogType, Prisma } from '@prisma/client';
 import Image from 'next/image';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type ConfigPage = 'control' | 'participants' | 'log' | 'stats';
 
@@ -64,7 +72,41 @@ type ActionLogWithEverything = Prisma.ActionLogGetPayload<{
 }>;
 
 export default function AdminConfig({ game }: { game: GameWithEverything }) {
+  const router = useRouter();
+
   const [configPage, setConfigPage] = useState<ConfigPage>('control');
+  const [loader, setLoader] = useState<{ show: boolean; error: string }>();
+  const [modal, setModal] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    buttonText: string;
+    buttonAction: () => void;
+  }>();
+
+  const showOverlay = modal?.show || loader?.show || loader?.error;
+  console.log(showOverlay, modal, loader);
+
+  async function runAction<
+    F extends (...args: any[]) => any,
+    Args extends Parameters<F>
+  >(f: F, ...args: Args) {
+    setLoader({ show: true, error: '' });
+
+    const runAction = await f(...args).catch((_) => null);
+    if (runAction == null || runAction?.error != null) {
+      setLoader({
+        show: false,
+        error: runAction?.error || 'Unknown error',
+      });
+      return;
+    }
+
+    setModal(undefined);
+    setLoader(undefined);
+
+    router.refresh(); // Only refreshes page with new data.
+  }
 
   return (
     <div className="my-6 w-full">
@@ -113,6 +155,19 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                       : 'bg-green-600 hover:bg-green-600/80'
                   }`}
                   disabled={game.isActive}
+                  onClick={() =>
+                    setModal({
+                      show: true,
+                      title: 'Start game?',
+                      message:
+                        'Participants will be emailed their targets right after you press this button. Get excited!',
+                      buttonText: 'Confirm',
+                      buttonAction: () =>
+                        runAction(startGame, {
+                          gameId: game.id,
+                        }),
+                    })
+                  }
                 >
                   {game.isActive ? 'Game Already Started' : 'Start Game'}
                 </button>
@@ -134,7 +189,19 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                 </div>
                 <button
                   className={`transition text-base font-bold py-2 px-4 mt-3 bg-red-600 hover:bg-red-600/80`}
-                  disabled={game.isActive}
+                  onClick={() =>
+                    setModal({
+                      show: true,
+                      title: 'Shuffle targets?',
+                      message:
+                        'This action cannot be undone. Will replace all current targets with new ones.',
+                      buttonText: 'Confirm',
+                      buttonAction: () =>
+                        runAction(shuffleTargets, {
+                          gameId: game.id,
+                        }),
+                    })
+                  }
                 >
                   Shuffle Targets
                 </button>
@@ -156,6 +223,19 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                 <button
                   className={`transition text-base font-bold py-2 px-4 mt-3 bg-red-600 hover:bg-red-600/80`}
                   disabled={game.isActive}
+                  onClick={() =>
+                    setModal({
+                      show: true,
+                      title: 'Email participants their target?',
+                      message:
+                        'Participants will be emailed their targets right after you press this button. Do not run after game start, only when shuffling targets! Game start automatically emails targets.',
+                      buttonText: 'Confirm',
+                      buttonAction: () =>
+                        runAction(emailTargets, {
+                          gameId: game.id,
+                        }),
+                    })
+                  }
                 >
                   Email Targets
                 </button>
@@ -228,6 +308,72 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
         )}
         {configPage === 'stats' && <div>Statistics</div>}
       </div>
+
+      {/* Confirmation Modal */}
+      {showOverlay && (
+        <div
+          className="w-screen h-screen fixed inset-0 bg-black/40 backdrop-blur-sm"
+          onClick={(e) =>
+            e.target === e.currentTarget ? setModal(undefined) : null
+          }
+        >
+          {loader?.error ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="max-w-3xl text-center">
+                <div className="text-5xl">
+                  <FontAwesomeIcon icon={faWarning} />
+                </div>
+                <div className="text-xl font-bold mt-4">{loader.error}</div>
+                <div className="text-lg mt-2">
+                  Something might be messed up. Contact Thijs for support!
+                </div>
+              </div>
+            </div>
+          ) : loader?.show ? (
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="max-w-3xl text-center">
+                <div className="text-5xl">
+                  <FontAwesomeIcon
+                    icon={faCircleNotch}
+                    className="animate-spin"
+                  />
+                </div>
+                <div className="text-lg mt-4">
+                  This should only take a sec. Reload if this gets stuck.
+                </div>
+              </div>
+            </div>
+          ) : modal?.show ? (
+            <div className="max-w-3xl w-full bg-black/90 mx-auto sm:mt-56 h-full sm:h-auto">
+              <div className="w-full bg-red-500/30 p-6 relative h-full sm:h-auto">
+                <div className="top-4 right-6 absolute text-xl">
+                  <button onClick={() => setModal(undefined)}>
+                    <FontAwesomeIcon icon={faXmark} />
+                  </button>
+                </div>
+                <div className="text-xl font-bold">{modal.title}</div>
+                <div className="bg-black/40 p-4 mt-4">
+                  <div className="">{modal.message}</div>
+                </div>
+                <div className="flex flex-row gap-4">
+                  <button
+                    className="bg-black/40 text-red-600 px-5 py-2 mt-2 hover:bg-black/20 transition border-2 border-red-600"
+                    onClick={modal.buttonAction}
+                  >
+                    {modal.buttonText}
+                  </button>
+                  <button
+                    className="bg-black/40 text-white px-5 py-2 mt-2 hover:bg-black/20 transition border-2 border-white"
+                    onClick={() => setModal(undefined)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }
