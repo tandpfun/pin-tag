@@ -1,0 +1,22 @@
+services:
+  website:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "2194:3000"
+    environment:
+      DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
+  
+  database:
+    image: "postgres:16"
+    environment:
+      POSTGRES_USER: "pin-tag"
+      POSTGRES_PASSWORD: "pin-tag"
+      POSTGRES_DB: "pin-tag"
+    volumes:
+      - "postgres_data:/var/lib/postgresql/data"
+    restart: always
+
+volumes:
+  postgres_data:   
