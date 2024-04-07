@@ -33,6 +33,8 @@ services:
     environment:
       DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
     depends_on:
+      migrate:
+        condition: service_completed_successfully
       database:
         condition: service_healthy
   
