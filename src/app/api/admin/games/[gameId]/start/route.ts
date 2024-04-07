@@ -2,6 +2,7 @@ import { userAuth } from '@/lib/auth/hooks';
 import { createGame, updateGame } from '@/lib/game/database';
 import { sendTargetEmail } from '@/lib/game/email';
 import { Game, Role } from '@prisma/client';
+import prisma from '../../../../../../lib/prisma';
 
 export async function POST(
   request: Request,

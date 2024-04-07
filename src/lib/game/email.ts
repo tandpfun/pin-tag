@@ -6,6 +6,7 @@ import { Participant, Role, User } from '@prisma/client';
 import { Template as TargetEmail } from '@/email/TargetEmail';
 import { Template as EliminationEmail } from '@/email/EliminationEmail';
 import Mail from 'nodemailer/lib/mailer';
+import prisma from '../prisma';
 
 const transport = nodemailer.createTransport({
   host: 'smtp.mailgun.org',

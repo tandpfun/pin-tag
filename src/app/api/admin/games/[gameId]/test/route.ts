@@ -3,6 +3,7 @@ import { createUser } from '@/lib/auth/database';
 import { createGame, createParticipant, updateGame } from '@/lib/game/database';
 import { Game, Participant, Role } from '@prisma/client';
 import { faker } from '@faker-js/faker';
+import prisma from '../../../../../../lib/prisma';
 
 export async function POST(
   request: Request,

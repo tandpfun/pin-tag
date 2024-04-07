@@ -4,6 +4,7 @@ import { ActionLogType, Participant } from '@prisma/client';
 import { userAuth } from '../auth/hooks';
 import { updateParticipants } from './database';
 import { sendEliminationEmail, sendTargetEmail } from './email';
+import prisma from '../prisma';
 
 export async function requestElimination({
   targetId,

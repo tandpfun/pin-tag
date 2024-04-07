@@ -1,5 +1,5 @@
 import { createUser, generateAuthToken } from '@/lib/auth/database';
-import { PrismaClient, User } from '@prisma/client';
+import { User } from '@prisma/client';
 
 export async function POST(request: Request) {
   // Check for API token

@@ -4,6 +4,7 @@ import { ActionLogType, Participant, Role } from '@prisma/client';
 import { userAuth } from '../auth/hooks';
 import { updateGame, updateParticipants } from '../game/database';
 import { sendTargetEmail } from '../game/email';
+import prisma from '../prisma';
 
 export async function startGame({ gameId }: { gameId: string }) {
   // Make sure the user is logged in

@@ -1,10 +1,6 @@
 import { userAuth } from '@/lib/auth/hooks';
-import {
-  createGame,
-  updateGame,
-  updateParticipants,
-} from '@/lib/game/database';
-import { Game, Participant, Role } from '@prisma/client';
+import { updateParticipants } from '@/lib/game/database';
+import { Participant, Role } from '@prisma/client';
 
 export async function POST(
   request: Request,
