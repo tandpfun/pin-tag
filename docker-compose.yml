@@ -7,6 +7,36 @@ services:
       - "2194:3000"
     environment:
       DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      database:
+        condition: service_healthy
+
+
+  migrate:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: 'pnpm migrate deploy'
+    environment:
+      DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  studio:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "2195:5555"
+    command: 'pnpm studio'
+    environment:
+      DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
+    depends_on:
+      database:
+        condition: service_healthy
   
   database:
     image: "postgres:16"
@@ -17,6 +47,11 @@ services:
     volumes:
       - "postgres_data:/var/lib/postgresql/data"
     restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready', 'postgres://pin-tag:pin-tag@database:5432/pin-tag']
+      interval: '10s'
+      timeout: '5s'
+      retries: 5
 
 volumes:
   postgres_data:   

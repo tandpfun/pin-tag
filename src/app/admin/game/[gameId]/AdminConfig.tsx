@@ -93,7 +93,7 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
   >(f: F, ...args: Args) {
     setLoader({ show: true, error: '' });
 
-    const runAction = await f(...args).catch((_) => null);
+    const runAction = await f(...args).catch(() => null);
     if (runAction == null || runAction?.error != null) {
       setLoader({
         show: false,
