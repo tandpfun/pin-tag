@@ -29,8 +29,6 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    ports:
-      - "2195:5555"
     command: 'pnpm studio'
     environment:
       DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
