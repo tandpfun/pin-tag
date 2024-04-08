@@ -1,7 +1,12 @@
 'use client';
 
 import GameCard from '@/app/game/[gameId]/GameCard';
-import { emailTargets, shuffleTargets, startGame } from '@/lib/admin/actions';
+import {
+  eliminateParticipant,
+  emailTargets,
+  shuffleTargets,
+  startGame,
+} from '@/lib/admin/actions';
 import {
   faCircleNotch,
   faWarning,
@@ -12,6 +17,7 @@ import { ActionLog, ActionLogType, Prisma } from '@prisma/client';
 import Image from 'next/image';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import AdminModal, { ModalParams } from './AdminModal';
 
 type ConfigPage = 'control' | 'participants' | 'log' | 'stats';
 
@@ -76,16 +82,7 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
 
   const [configPage, setConfigPage] = useState<ConfigPage>('control');
   const [loader, setLoader] = useState<{ show: boolean; error: string }>();
-  const [modal, setModal] = useState<{
-    show: boolean;
-    title: string;
-    message: string;
-    buttonText: string;
-    buttonAction: () => void;
-  }>();
-
-  const showOverlay = modal?.show || loader?.show || loader?.error;
-  console.log(showOverlay, modal, loader);
+  const [modal, setModal] = useState<ModalParams>();
 
   async function runAction<
     F extends (...args: any[]) => any,
@@ -284,6 +281,8 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
               </div>
               <ParticipantTable
                 participants={game.participants.filter((p) => p.isAlive)}
+                runAction={runAction}
+                setModal={setModal}
                 type="alive"
                 className="mt-4"
               />
@@ -295,6 +294,8 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
               </div>
               <ParticipantTable
                 participants={game.participants.filter((p) => !p.isAlive)}
+                runAction={runAction}
+                setModal={setModal}
                 type="eliminated"
                 className="mt-4"
               />
@@ -310,70 +311,7 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
       </div>
 
       {/* Confirmation Modal */}
-      {showOverlay && (
-        <div
-          className="w-screen h-screen fixed inset-0 bg-black/40 backdrop-blur-sm"
-          onClick={(e) =>
-            e.target === e.currentTarget ? setModal(undefined) : null
-          }
-        >
-          {loader?.error ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="max-w-3xl text-center">
-                <div className="text-5xl">
-                  <FontAwesomeIcon icon={faWarning} />
-                </div>
-                <div className="text-xl font-bold mt-4">{loader.error}</div>
-                <div className="text-lg mt-2">
-                  Something might be messed up. Contact Thijs for support!
-                </div>
-              </div>
-            </div>
-          ) : loader?.show ? (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="max-w-3xl text-center">
-                <div className="text-5xl">
-                  <FontAwesomeIcon
-                    icon={faCircleNotch}
-                    className="animate-spin"
-                  />
-                </div>
-                <div className="text-lg mt-4">
-                  This should only take a sec. Reload if this gets stuck.
-                </div>
-              </div>
-            </div>
-          ) : modal?.show ? (
-            <div className="max-w-3xl w-full bg-black/90 mx-auto sm:mt-56 h-full sm:h-auto">
-              <div className="w-full bg-red-500/30 p-6 relative h-full sm:h-auto">
-                <div className="top-4 right-6 absolute text-xl">
-                  <button onClick={() => setModal(undefined)}>
-                    <FontAwesomeIcon icon={faXmark} />
-                  </button>
-                </div>
-                <div className="text-xl font-bold">{modal.title}</div>
-                <div className="bg-black/40 p-4 mt-4">
-                  <div className="">{modal.message}</div>
-                </div>
-                <div className="flex flex-row gap-4">
-                  <button
-                    className="bg-black/40 text-red-600 px-5 py-2 mt-2 hover:bg-black/20 transition border-2 border-red-600"
-                    onClick={modal.buttonAction}
-                  >
-                    {modal.buttonText}
-                  </button>
-                  <button
-                    className="bg-black/40 text-white px-5 py-2 mt-2 hover:bg-black/20 transition border-2 border-white"
-                    onClick={() => setModal(undefined)}
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      )}
+      <AdminModal setModal={setModal} modal={modal} loader={loader} />
     </div>
   );
 }
@@ -395,7 +333,9 @@ export function getLogMessage(
 
   switch (log.type) {
     case ActionLogType.ELIMINATE:
-      return `${participant?.user.firstName} ${participant?.user.lastName} eliminated ${target?.user.firstName} ${target?.user.lastName}`;
+      return `${participant?.user.firstName || log.user?.firstName} ${
+        participant?.user.lastName || log.user?.lastName
+      } eliminated ${target?.user.firstName} ${target?.user.lastName}`;
     case ActionLogType.EMAIL:
       return `${log.user?.firstName} ${log.user?.lastName} sent out emails to all participants`;
     case ActionLogType.MESSAGE:
@@ -455,10 +395,14 @@ export function ActionLogTable({
 export function ParticipantTable({
   participants,
   type,
+  setModal,
+  runAction,
   className,
 }: {
   participants: ParticipantsWithEverything[];
   type: 'alive' | 'eliminated';
+  setModal: (modal: ModalParams) => void;
+  runAction: (...args: any[]) => any;
   className?: string;
 }) {
   return (
@@ -514,7 +458,32 @@ export function ParticipantTable({
               </td>
               <td className="px-6 py-4 flex flex-row gap-2 text-xs">
                 {type === 'alive' ? (
-                  <button className="font-bold text-red-600">Eliminate</button>
+                  <button
+                    className="font-bold text-red-600"
+                    onClick={() =>
+                      setModal({
+                        show: true,
+                        title: `Eliminate ${participant.user.firstName} ${participant.user.lastName}?`,
+                        message: `This will make ${participant.target?.user.firstName} (${participant.user.firstName}'s target) the target of ${participant.assassin?.user.firstName} (${participant.user.firstName}'s assassin). Both ${participant.user.firstName} and ${participant.assassin?.user.firstName} will be emailed with the update if the box below is checked.`,
+                        inputs: {
+                          emailParticipants: {
+                            type: 'checkbox',
+                            value: true,
+                            label: 'Email both participants with update',
+                          },
+                        },
+                        buttonText: 'Confirm',
+                        buttonAction: (inputs) =>
+                          runAction(eliminateParticipant, {
+                            participantId: participant.id,
+                            emailParticipants:
+                              !!inputs?.emailParticipants.value,
+                          }),
+                      })
+                    }
+                  >
+                    Eliminate
+                  </button>
                 ) : (
                   <button className="font-bold text-green-600">Revive</button>
                 )}

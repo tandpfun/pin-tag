@@ -3,7 +3,7 @@
 import { ActionLogType, Participant, Role } from '@prisma/client';
 import { userAuth } from '../auth/hooks';
 import { updateGame, updateParticipants } from '../game/database';
-import { sendTargetEmail } from '../game/email';
+import { sendEliminationEmail, sendTargetEmail } from '../game/email';
 import prisma from '../prisma';
 
 export async function startGame({ gameId }: { gameId: string }) {
@@ -58,6 +58,74 @@ export async function startGame({ gameId }: { gameId: string }) {
       timestamp: new Date(),
     },
   });
+
+  return { success: true };
+}
+
+export async function eliminateParticipant({
+  participantId,
+  emailParticipants,
+}: {
+  participantId: string;
+  emailParticipants: boolean;
+}) {
+  // Make sure the user is logged in
+  const user = await userAuth();
+  if (!user || user.role !== Role.ADMIN) return { error: 'Unauthorized' };
+
+  const participant = await prisma.participant.findUnique({
+    where: { id: participantId },
+    include: {
+      target: { include: { user: true } },
+      assassin: { include: { user: true } },
+      user: true,
+    },
+  });
+
+  if (!participant) return { error: 'Participant not found' };
+  if (!participant.target || !participant.assassin)
+    return { error: 'User missing target or assassin' };
+
+  // Create action log
+  await prisma.actionLog.create({
+    data: {
+      type: ActionLogType.ELIMINATE,
+      gameId: participant.gameId,
+      userId: user.id,
+      targetId: participant.id,
+      timestamp: new Date(),
+    },
+  });
+
+  const updatedParticipant = {
+    id: participant.id,
+    targetId: null,
+    isAlive: false,
+    eliminatedById: undefined,
+    eliminatedAt: new Date(),
+  };
+  const updatedAssassin = {
+    id: participant.assassin.id,
+    targetId: participant.targetId, // Set the target's target to the new target
+  };
+
+  const update = await updateParticipants([
+    updatedParticipant,
+    updatedAssassin,
+  ]);
+
+  if (emailParticipants) {
+    // Send new target and elimination email
+    await sendTargetEmail({
+      user: participant.assassin.user,
+      targetUser: participant.target.user,
+      gameId: participant.gameId,
+      isNew: true,
+    });
+    await sendEliminationEmail({
+      user: participant.user,
+    });
+  }
 
   return { success: true };
 }

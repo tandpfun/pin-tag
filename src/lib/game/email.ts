@@ -74,7 +74,7 @@ export async function sendEliminationEmail({
   assassinUser,
 }: {
   user: User;
-  assassinUser: User;
+  assassinUser?: User;
 }) {
   const emailHtml = await render(
     EliminationEmail({

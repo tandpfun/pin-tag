@@ -34,10 +34,10 @@ function gradYearToGrade(gradYear: number) {
 
 export const Template = ({
   name = 'Thijs',
-  assassin = { firstName: 'John', lastName: 'Doe', gradYear: 2024 },
+  assassin,
 }: {
   name: string;
-  assassin: { firstName: string; lastName: string; gradYear: number };
+  assassin?: { firstName: string; lastName: string; gradYear: number };
 }) => (
   <Tailwind production>
     <Head>
@@ -60,18 +60,26 @@ export const Template = ({
               <br />
               <br />
               You were eliminated from the game by{' '}
-              <b className="text-red-500">
-                {assassin.firstName} {assassin.lastName} &apos;
-                {assassin.gradYear.toString().substring(2)}
-              </b>
+              {assassin ? (
+                <b className="text-red-500">
+                  {assassin.firstName} {assassin.lastName} &apos;
+                  {assassin.gradYear.toString().substring(2)}
+                </b>
+              ) : (
+                'one of the event organizers (nate, mateus, thijs)'
+              )}
               .
               <br />
               <br />
-              We may offer a revival round in the future! Check your email often
-              so you don&apos;t miss it. Feel free to reply to this email with
-              any concerns or questions.
-              <br />
-              <br />
+              {assassin && (
+                <>
+                  We may offer a revival round in the future! Check your email
+                  often so you don&apos;t miss it. Feel free to reply to this
+                  email with any concerns or questions.
+                  <br />
+                  <br />
+                </>
+              )}
               Better luck next time,
               <br />
               <span className="text-red-500">FBI Directors Nate & Mateus</span>
