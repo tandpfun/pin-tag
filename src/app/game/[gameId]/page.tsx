@@ -33,6 +33,8 @@ const nthNumber = (number: number) => {
   }
 };
 
+const leaderIcons = ['👑', '🥈', '🥉'];
+
 export default async function GamePage({
   params,
 }: {
@@ -55,13 +57,13 @@ export default async function GamePage({
           <h1 className="text-3xl sm:text-5xl font-bold">{game.name}</h1>
           {game.isActive ? (
             participant.isAlive ? (
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
                 <div className="mt-2 sm:mt-4">
                   {game.aliveCount}/{game.participantCount} participants remain.
                 </div>
 
                 <GameCard
-                  className="bg-green-600/10"
+                  className="bg-green-600/10 col-span-2"
                   from="FBI Director Kim"
                   fromColor="text-green-500"
                 >
@@ -85,57 +87,90 @@ export default async function GamePage({
                   targetId={participant.target?.id}
                 />
 
-                <div className="flex flex-col sm:flex-row gap-4">
-                  {elimLeaderboard && (
-                    <GameCard
-                      className="bg-blue-600/10 w-full"
-                      from="Leaderboard"
-                      fromColor="text-blue-600"
-                    >
-                      <div className="text-sm">
-                        <ol className="list-decimal list-inside">
-                          {elimLeaderboard?.slice(0, 10).map((p, i) => (
-                            <li
-                              key={p.userId}
-                              className={p.userId == user.id ? 'font-bold' : ''}
-                            >
-                              {p.user.firstName} {p.user.lastName} (
-                              {p.eliminatedTargets.length} pins)
-                            </li>
-                          ))}
-                        </ol>
-                        {!elimLeaderboard
-                          ?.slice(0, 10)
-                          .find((p) => p.userId == user.id) && (
-                          <div className="font-bold">
-                            {elimLeaderboard
-                              .map((p) => p.userId)
-                              .indexOf(user.id) + 1}
-                            . {user.firstName} {user.lastName} (
-                            {participant.eliminatedTargets.length} pins)
-                          </div>
-                        )}
-                      </div>
-                    </GameCard>
-                  )}
-
+                {elimLeaderboard && (
                   <GameCard
-                    className="bg-blue-600/10 hidden"
+                    className="bg-blue-600/10 w-full"
                     from="Leaderboard"
                     fromColor="text-blue-600"
                   >
-                    Your task is to pin{' '}
-                    <span className="text-blue-600">
-                      {userToFullName(targetUser)}
-                    </span>
-                    . Once you pin them, you must ask them who their target is.
-                    You will need to verify their next target here to eliminate
-                    them.
+                    <div>
+                      {elimLeaderboard?.slice(0, 5).map((part, index) => (
+                        <div
+                          className={
+                            index === 0
+                              ? 'sm:text-2xl text-lg'
+                              : 'sm:text-lg text-base'
+                          }
+                          key={part.id}
+                        >
+                          {leaderIcons[index] != null
+                            ? leaderIcons[index]
+                            : `${index + 1}.`}{' '}
+                          <span className="font-bold">
+                            {part.user.firstName} {part.user.lastName}
+                          </span>{' '}
+                          ({part.eliminatedTargets.length} pins)
+                        </div>
+                      ))}
+                      {!elimLeaderboard
+                        ?.slice(0, 5)
+                        .find((p) => p.userId == user.id) && (
+                        <div className="sm:text-lg text-base">
+                          {elimLeaderboard
+                            .map((p) => p.userId)
+                            .indexOf(user.id) + 1}
+                          .{' '}
+                          <span className="font-bold">
+                            {user.firstName} {user.lastName}
+                          </span>{' '}
+                          ({participant.eliminatedTargets.length} pins)
+                        </div>
+                      )}
+                    </div>
                   </GameCard>
-                </div>
+                )}
+
+                {elimLeaderboard && (
+                  <GameCard
+                    className="bg-blue-600/10 w-full"
+                    from="Game Log"
+                    fromColor="text-blue-600"
+                  >
+                    <ul className="text-md sm:text-base">
+                      {game.actionLogs.map((log) => (
+                        <li key={log.id}>
+                          ❌ {log.user?.firstName} {log.user?.lastName}{' '}
+                          <span className="text-red-500">pinned</span>{' '}
+                          {
+                            elimLeaderboard.find((p) => p.id === log.targetId)
+                              ?.user.firstName
+                          }{' '}
+                          {
+                            elimLeaderboard.find((p) => p.id === log.targetId)
+                              ?.user.lastName
+                          }
+                        </li>
+                      ))}
+                    </ul>
+                  </GameCard>
+                )}
+
+                <GameCard
+                  className="bg-blue-600/10 hidden"
+                  from="Leaderboard"
+                  fromColor="text-blue-600"
+                >
+                  Your task is to pin{' '}
+                  <span className="text-blue-600">
+                    {userToFullName(targetUser)}
+                  </span>
+                  . Once you pin them, you must ask them who their target is.
+                  You will need to verify their next target here to eliminate
+                  them.
+                </GameCard>
               </div>
             ) : (
-              <div>
+              <div className="flex flex-col gap-4">
                 <div className="mt-4">
                   <span className="text-red-500">
                     You&apos;ve been eliminated.
@@ -149,13 +184,17 @@ export default async function GamePage({
                   fromColor="text-red-600"
                 >
                   <span className="text-red-500">Agent {user.firstName}</span>,
-                  you were eliminated by{' '}
-                  <span className="text-red-500">
-                    {userToFullName(participant.eliminatedBy?.user)}
-                  </span>
+                  you were eliminated
+                  {participant.eliminatedById ? (
+                    <>
+                      by{' '}
+                      <span className="text-red-500">
+                        {userToFullName(participant.eliminatedBy?.user)}
+                      </span>
+                    </>
+                  ) : null}
                   . You got{' '}
                   {participant.place + nthNumber(participant.place || 0)} place.
-                  <br />
                   Keep your eyes peeled for a revival round!
                 </GameCard>
 
@@ -196,7 +235,7 @@ export default async function GamePage({
               </div>
             )
           ) : (
-            <div>
+            <div className="flex flex-col gap-4">
               <div className="mt-4">
                 {game.participantCount} participants have joined!
               </div>

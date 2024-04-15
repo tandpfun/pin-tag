@@ -17,6 +17,7 @@ enum Role {
 
 enum ActionLogType {
   ELIMINATE
+  REVIVE
   START
   SHUFFLE
   EMAIL

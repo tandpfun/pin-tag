@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { ActionLogType, PrismaClient } from '@prisma/client';
 import { getJoinableGames } from './database';
 import prisma from '../prisma';
 
@@ -37,7 +37,17 @@ export async function getGameStatus(gameId: string, userId?: string) {
 
   const game = await prisma.game.findUnique({
     where: { id: gameId, participants: { some: { userId } } }, // Make sure user is in game
-    include: { participants: true },
+    include: {
+      participants: true,
+      actionLogs: {
+        take: 5,
+        orderBy: { timestamp: 'desc' },
+        where: { type: ActionLogType.ELIMINATE, userId: { not: null } },
+        include: {
+          user: true,
+        },
+      },
+    },
   });
   if (!game) return null;
 
@@ -61,8 +71,8 @@ export async function getGameStatus(gameId: string, userId?: string) {
     .filter((p) => !p.isAlive)
     .sort(
       (a, b) =>
-        new Date(a.eliminatedAt || 0).getTime() -
-        new Date(b.eliminatedAt || 0).getTime()
+        new Date(b.eliminatedAt || 0).getTime() -
+        new Date(a.eliminatedAt || 0).getTime()
     );
 
   const place =
@@ -75,6 +85,7 @@ export async function getGameStatus(gameId: string, userId?: string) {
       name: game.name,
       isActive: game.isActive,
       isJoinable: game.isJoinable,
+      actionLogs: game.actionLogs,
       participantCount,
       aliveCount,
     },
@@ -106,3 +117,5 @@ export function gradYearToGrade(gradYear: number) {
   const grades = ['Senior', 'Junior', 'Sophomore', 'Frosh'];
   return grades[currentYear - gradYear];
 }
+
+export async function getLatestPins(gameId: string) {}

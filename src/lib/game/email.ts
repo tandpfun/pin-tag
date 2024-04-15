@@ -36,11 +36,13 @@ export async function sendTargetEmail({
   targetUser,
   gameId,
   isNew,
+  isRevival,
 }: {
   user: User;
   targetUser: User;
   gameId: string;
-  isNew: boolean;
+  isNew?: boolean;
+  isRevival?: boolean;
 }) {
   const authToken = await prisma.authToken.findUnique({
     where: { userId: user.id },
@@ -54,6 +56,7 @@ export async function sendTargetEmail({
       target: targetUser,
       eliminationLink,
       isNew,
+      isRevival,
     })
   );
 
@@ -64,7 +67,9 @@ export async function sendTargetEmail({
       address: 'game@pintag.thijs.gg',
     },
     to: user.email,
-    subject: `YOUR ${isNew ? 'NEW' : ''} PIN-TAG TARGET`,
+    subject: !isRevival
+      ? `YOUR ${isNew ? 'NEW' : ''} PIN-TAG TARGET`
+      : "YOU'VE BEEN REVIVED",
     html: emailHtml,
   });
 }

@@ -37,11 +37,13 @@ export const Template = ({
   target = { firstName: 'John', lastName: 'Doe', gradYear: 2024 },
   eliminationLink = 'https://google.com',
   isNew = false,
+  isRevival = false,
 }: {
   name: string;
   target: { firstName: string; lastName: string; gradYear: number };
   eliminationLink: string;
-  isNew: boolean;
+  isNew?: boolean;
+  isRevival?: boolean;
 }) => (
   <Tailwind production>
     <Head>
@@ -63,7 +65,8 @@ export const Template = ({
               ,
               <br />
               <br />
-              Your {isNew ? 'target has been updated. Your NEW' : ''} target is{' '}
+              {isRevival ? 'You have been revived! Your NEW' : 'Your '}
+              {isNew ? 'target has been updated. Your NEW' : ''} target is{' '}
               <span className="text-green-500 font-bold">
                 {target.firstName} {target.lastName} &apos;
                 {target.gradYear.toString().substring(2)}

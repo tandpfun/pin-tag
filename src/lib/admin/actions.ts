@@ -86,17 +86,6 @@ export async function eliminateParticipant({
   if (!participant.target || !participant.assassin)
     return { error: 'User missing target or assassin' };
 
-  // Create action log
-  await prisma.actionLog.create({
-    data: {
-      type: ActionLogType.ELIMINATE,
-      gameId: participant.gameId,
-      userId: user.id,
-      targetId: participant.id,
-      timestamp: new Date(),
-    },
-  });
-
   const updatedParticipant = {
     id: participant.id,
     targetId: null,
@@ -114,6 +103,17 @@ export async function eliminateParticipant({
     updatedAssassin,
   ]);
 
+  // Create action log
+  await prisma.actionLog.create({
+    data: {
+      type: ActionLogType.ELIMINATE,
+      gameId: participant.gameId,
+      userId: user.id,
+      targetId: participant.id,
+      timestamp: new Date(),
+    },
+  });
+
   if (emailParticipants) {
     // Send new target and elimination email
     await sendTargetEmail({
@@ -124,6 +124,97 @@ export async function eliminateParticipant({
     });
     await sendEliminationEmail({
       user: participant.user,
+    });
+  }
+
+  return { success: true };
+}
+
+export async function reviveParticipant({
+  gameId,
+  participantId,
+  newTargetId,
+  emailParticipants,
+}: {
+  gameId: string;
+  participantId: string;
+  newTargetId?: string;
+  emailParticipants: boolean;
+}) {
+  // Make sure the user is logged in
+  const user = await userAuth();
+  if (!user || user.role !== Role.ADMIN) return { error: 'Unauthorized' };
+
+  if (!newTargetId) return { error: 'Please specify a new target' };
+
+  const game = await prisma.game.findUnique({
+    where: { id: gameId },
+    include: {
+      participants: {
+        include: {
+          user: true,
+          target: true,
+          assassin: { include: { user: true } },
+        },
+      },
+    },
+  });
+
+  if (!game) return { error: 'Game not found' };
+
+  const participant = game.participants.find((p) => p.id === participantId);
+  const newTarget = game.participants.find((p) => p.id === newTargetId);
+
+  if (!participant || !newTarget) return { error: 'Participants not found' };
+
+  if (participant.isAlive) return { error: 'Participant is not eliminated' };
+  if (!newTarget.isAlive) return { error: 'Specified target is not alive' };
+
+  const newAssassin = newTarget.assassin;
+
+  if (!newAssassin) return { error: 'Target does not have a current assassin' };
+
+  // Create action log
+  await prisma.actionLog.create({
+    data: {
+      type: ActionLogType.REVIVE,
+      gameId: participant.gameId,
+      userId: user.id,
+      participantId: participant.id,
+      timestamp: new Date(),
+    },
+  });
+
+  const updatedParticipant = {
+    id: participant.id,
+    targetId: newTarget.id,
+    isAlive: true,
+    eliminatedById: undefined,
+    eliminatedAt: undefined,
+  };
+  const updatedAssassin = {
+    id: newAssassin.id,
+    targetId: participant.id,
+  };
+
+  const update = await updateParticipants([
+    updatedAssassin,
+    updatedParticipant,
+  ]);
+
+  if (emailParticipants) {
+    // Send new target emails
+    await sendTargetEmail({
+      user: newAssassin.user,
+      targetUser: participant.user,
+      gameId: participant.gameId,
+      isNew: true,
+    });
+    await sendTargetEmail({
+      user: participant.user,
+      targetUser: newTarget.user,
+      gameId: participant.gameId,
+      isRevival: true,
     });
   }
 

@@ -66,7 +66,7 @@ export const Template = ({
                   {assassin.gradYear.toString().substring(2)}
                 </b>
               ) : (
-                'one of the event organizers (nate, mateus, thijs)'
+                'one of the event organizers'
               )}
               .
               <br />

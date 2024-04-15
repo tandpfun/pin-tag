@@ -4,6 +4,7 @@ import GameCard from '@/app/game/[gameId]/GameCard';
 import {
   eliminateParticipant,
   emailTargets,
+  reviveParticipant,
   shuffleTargets,
   startGame,
 } from '@/lib/admin/actions';
@@ -103,6 +104,14 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
     setLoader(undefined);
 
     router.refresh(); // Only refreshes page with new data.
+  }
+
+  function copyToClipboard(text: string) {
+    try {
+      navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   return (
@@ -259,16 +268,42 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                   <div className="flex flex-row gap-4">
                     <button
                       className={`transition text-base font-bold py-2 px-4 mt-3 bg-blue-600 hover:bg-blue-600/80`}
+                      onClick={() =>
+                        copyToClipboard(
+                          game.participants
+                            .map((p) => p.user.email)
+                            .sort(() => 0.5 - Math.random())
+                            .join(', ')
+                        )
+                      }
                     >
                       Copy All Emails
                     </button>
                     <button
                       className={`transition text-base font-bold py-2 px-4 mt-3 bg-blue-600 hover:bg-blue-600/80`}
+                      onClick={() =>
+                        copyToClipboard(
+                          game.participants
+                            .filter((p) => p.isAlive)
+                            .map((p) => p.user.email)
+                            .sort(() => 0.5 - Math.random())
+                            .join(', ')
+                        )
+                      }
                     >
                       Copy Alive Emails
                     </button>
                     <button
                       className={`transition text-base font-bold py-2 px-4 mt-3 bg-blue-600 hover:bg-blue-600/80`}
+                      onClick={() =>
+                        copyToClipboard(
+                          game.participants
+                            .filter((p) => !p.isAlive)
+                            .map((p) => p.user.email)
+                            .sort(() => 0.5 - Math.random())
+                            .join(', ')
+                        )
+                      }
                     >
                       Copy Eliminated Emails
                     </button>
@@ -280,7 +315,8 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                 {game.participants.filter((p) => p.isAlive).length})
               </div>
               <ParticipantTable
-                participants={game.participants.filter((p) => p.isAlive)}
+                participants={game.participants}
+                gameId={game.id}
                 runAction={runAction}
                 setModal={setModal}
                 type="alive"
@@ -293,7 +329,8 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                 {game.participants.filter((p) => !p.isAlive).length})
               </div>
               <ParticipantTable
-                participants={game.participants.filter((p) => !p.isAlive)}
+                participants={game.participants}
+                gameId={game.id}
                 runAction={runAction}
                 setModal={setModal}
                 type="eliminated"
@@ -318,6 +355,7 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
 
 export const logIcons = {
   [ActionLogType.ELIMINATE]: '❌',
+  [ActionLogType.REVIVE]: '🔄',
   [ActionLogType.EMAIL]: '✉️',
   [ActionLogType.MESSAGE]: '💬',
   [ActionLogType.SHUFFLE]: '🔀',
@@ -336,6 +374,8 @@ export function getLogMessage(
       return `${participant?.user.firstName || log.user?.firstName} ${
         participant?.user.lastName || log.user?.lastName
       } eliminated ${target?.user.firstName} ${target?.user.lastName}`;
+    case ActionLogType.REVIVE:
+      return `${log.user?.firstName} ${log.user?.lastName} revived ${participant?.user.firstName} ${participant?.user.lastName}`;
     case ActionLogType.EMAIL:
       return `${log.user?.firstName} ${log.user?.lastName} sent out emails to all participants`;
     case ActionLogType.MESSAGE:
@@ -394,17 +434,32 @@ export function ActionLogTable({
 
 export function ParticipantTable({
   participants,
+  gameId,
   type,
   setModal,
   runAction,
   className,
 }: {
   participants: ParticipantsWithEverything[];
+  gameId: string;
   type: 'alive' | 'eliminated';
   setModal: (modal: ModalParams) => void;
   runAction: (...args: any[]) => any;
   className?: string;
 }) {
+  const [copiedEmails, setCopiedEmails] = useState<string[]>([]);
+  function copyEmail(email: string) {
+    try {
+      navigator.clipboard.writeText(email);
+    } catch (err) {
+      console.error(err);
+    }
+    setCopiedEmails([...copiedEmails, email]);
+    setTimeout(() => {
+      setCopiedEmails((prev) => prev.filter((e) => e !== email));
+    }, 2500);
+  }
+
   return (
     <div className={`relative overflow-x-auto ${className}`}>
       <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -428,69 +483,117 @@ export function ParticipantTable({
           </tr>
         </thead>
         <tbody>
-          {participants.map((participant) => (
-            <tr
-              className="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
-              key={participant.id}
-            >
-              <td className="px-4 py-2">
-                <Image
-                  src="/thijs.jpg"
-                  width={256}
-                  height={256}
-                  alt="Photo of target"
-                  className="w-10 h-10"
-                />
-              </td>
-              <th
-                scope="row"
-                className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+          {participants
+            .filter((p) => (type === 'alive' ? p.isAlive : !p.isAlive))
+            .map((participant) => (
+              <tr
+                className="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+                key={participant.id}
               >
-                {participant.user.firstName} {participant.user.lastName}
-              </th>
-              <td className="px-6 py-4">
-                {type === 'alive'
-                  ? `${participant.target?.user.firstName} ${participant.target?.user.lastName}`
-                  : `${participant.eliminatedBy?.user.firstName} ${participant.eliminatedBy?.user.lastName}`}
-              </td>
-              <td className="px-6 py-4">
-                {participant.eliminatedTargets.length}
-              </td>
-              <td className="px-6 py-4 flex flex-row gap-2 text-xs">
-                {type === 'alive' ? (
-                  <button
-                    className="font-bold text-red-600"
-                    onClick={() =>
-                      setModal({
-                        show: true,
-                        title: `Eliminate ${participant.user.firstName} ${participant.user.lastName}?`,
-                        message: `This will make ${participant.target?.user.firstName} (${participant.user.firstName}'s target) the target of ${participant.assassin?.user.firstName} (${participant.user.firstName}'s assassin). Both ${participant.user.firstName} and ${participant.assassin?.user.firstName} will be emailed with the update if the box below is checked.`,
-                        inputs: {
-                          emailParticipants: {
-                            type: 'checkbox',
-                            value: true,
-                            label: 'Email both participants with update',
+                <td className="px-4 py-2">
+                  <Image
+                    src="/thijs.jpg"
+                    width={256}
+                    height={256}
+                    alt="Photo of target"
+                    className="w-10 h-10"
+                  />
+                </td>
+                <th
+                  scope="row"
+                  className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                >
+                  {participant.user.firstName} {participant.user.lastName}
+                </th>
+                <td className="px-6 py-4">
+                  {type === 'alive'
+                    ? `${participant.target?.user.firstName} ${participant.target?.user.lastName}`
+                    : `${participant.eliminatedBy?.user.firstName} ${participant.eliminatedBy?.user.lastName}`}
+                </td>
+                <td className="px-6 py-4">
+                  {participant.eliminatedTargets.length}
+                </td>
+                <td className="px-6 py-4 flex flex-row gap-2 text-xs">
+                  {type === 'alive' ? (
+                    <button
+                      className="font-bold text-red-600"
+                      onClick={() =>
+                        setModal({
+                          show: true,
+                          title: `Eliminate ${participant.user.firstName} ${participant.user.lastName}?`,
+                          message: `This will make ${participant.target?.user.firstName} (${participant.user.firstName}'s target) the target of ${participant.assassin?.user.firstName} (${participant.user.firstName}'s assassin). Both ${participant.user.firstName} and ${participant.assassin?.user.firstName} will be emailed with the update if the box below is checked.`,
+                          inputs: {
+                            emailParticipants: {
+                              type: 'checkbox',
+                              value: true,
+                              label: 'Email both participants with update',
+                            },
                           },
-                        },
-                        buttonText: 'Confirm',
-                        buttonAction: (inputs) =>
-                          runAction(eliminateParticipant, {
-                            participantId: participant.id,
-                            emailParticipants:
-                              !!inputs?.emailParticipants.value,
-                          }),
-                      })
-                    }
+                          buttonText: 'Confirm',
+                          buttonAction: (inputs) =>
+                            runAction(eliminateParticipant, {
+                              participantId: participant.id,
+                              emailParticipants:
+                                !!inputs?.emailParticipants.value,
+                            }),
+                        })
+                      }
+                    >
+                      Eliminate
+                    </button>
+                  ) : (
+                    <button
+                      className="font-bold text-green-600"
+                      onClick={() =>
+                        setModal({
+                          show: true,
+                          title: `Revive ${participant.user.firstName} ${participant.user.lastName}?`,
+                          message: `Please select a new participant below for ${participant.user.firstName} ${participant.user.lastName} to target. Additionally, choose if you would like to email this participant and their assassin with the update. Don't email if you plan on shuffling the targets right after.`,
+                          inputs: {
+                            newTarget: {
+                              type: 'select',
+                              value: participants[0]?.id,
+                              label: 'New Target',
+                              options: participants
+                                .filter((p) => p.isAlive)
+                                .map((p) => ({
+                                  id: p.id,
+                                  label: `${p.user.firstName} ${p.user.lastName}`,
+                                })),
+                            },
+                            emailParticipants: {
+                              type: 'checkbox',
+                              value: true,
+                              label:
+                                'Email assassin and participant with update',
+                            },
+                          },
+                          buttonText: 'Confirm',
+                          buttonAction: (inputs) =>
+                            runAction(reviveParticipant, {
+                              participantId: participant.id,
+                              gameId,
+                              newTargetId: inputs?.newTarget.value,
+                              emailParticipants:
+                                !!inputs?.emailParticipants.value,
+                            }),
+                        })
+                      }
+                    >
+                      Revive
+                    </button>
+                  )}
+                  <button
+                    className="font-bold text-blue-600"
+                    onClick={() => copyEmail(participant.user.email)}
                   >
-                    Eliminate
+                    {copiedEmails.includes(participant.user.email)
+                      ? 'Copied!'
+                      : 'Email'}
                   </button>
-                ) : (
-                  <button className="font-bold text-green-600">Revive</button>
-                )}
-                <button className="font-bold text-blue-600">Email</button>
-              </td>
-            </tr>
-          ))}
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>

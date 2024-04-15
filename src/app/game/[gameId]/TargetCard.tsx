@@ -3,7 +3,7 @@
 import { gradYearToGrade } from '@/lib/game/hooks';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Image from 'next/image';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   faCircleNotch,
@@ -90,7 +90,7 @@ export default function TargetCard({
   }
 
   return (
-    <div>
+    <div className="col-span-2">
       <GameCard
         className="bg-red-600/20"
         from="FBI Fileserver"
@@ -98,13 +98,16 @@ export default function TargetCard({
       >
         <div className="flex gap-4">
           <div className="">
-            <Image
-              src="/thijs.jpg"
-              width={256}
-              height={256}
-              alt="Photo of target"
-              className="filter grayscale w-24 h-24 sm:w-48 sm:h-48"
-            />
+            <div className="w-24 h-24 sm:w-48 sm:h-48 relative">
+              <Image
+                src="/thijs.jpg"
+                width={256}
+                height={256}
+                alt="Photo of target"
+                className="filter w-full h-full"
+              />
+              <div className="w-full h-full absolute inset-0 bg-gradient-to-bl from-red-600/20 to-red-600/70" />
+            </div>
           </div>
           <div className="text-sm sm:text-xl flex flex-col">
             <div className="font-bold text-lg sm:text-2xl sm:mb-2">
@@ -117,7 +120,7 @@ export default function TargetCard({
               <b>GRADE:</b> {gradYear != null && gradYearToGrade(gradYear)}
             </div>
             <div>
-              <b>ELIMINATIONS:</b> {eliminationCount}
+              <b>PINS:</b> {eliminationCount}
             </div>
             <div className="mt-auto text-base hidden sm:block">
               <button
