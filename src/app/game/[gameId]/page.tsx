@@ -189,7 +189,7 @@ type SelfParticipant = Prisma.ParticipantGetPayload<{
   };
 }>;
 
-export function GameStatsCards({
+function GameStatsCards({
   actionLogs,
   elimLeaderboard,
   participant,
