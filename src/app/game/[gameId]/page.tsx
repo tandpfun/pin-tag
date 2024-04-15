@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 import React, { use } from 'react';
 import TargetCard from './TargetCard';
-import { Participant, User } from '@prisma/client';
+import { Participant, Prisma, User } from '@prisma/client';
 import GameCard from './GameCard';
 import { render } from 'jsx-email';
 import { Template } from '@/email/TargetEmail';
@@ -58,10 +58,9 @@ export default async function GamePage({
           {game.isActive ? (
             participant.isAlive ? (
               <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
-                <div className="mt-2 sm:mt-4">
+                <div className="mt-2 sm:mt-4 col-span-2">
                   {game.aliveCount}/{game.participantCount} participants remain.
                 </div>
-
                 <GameCard
                   className="bg-green-600/10 col-span-2"
                   from="FBI Director Kim"
@@ -75,7 +74,6 @@ export default async function GamePage({
                   . When you pin your target, you must let us know immediately
                   by clicking the &quot;eliminate&quot; button below.
                 </GameCard>
-
                 <TargetCard
                   firstName={targetUser?.firstName}
                   lastName={targetUser?.lastName}
@@ -88,103 +86,28 @@ export default async function GamePage({
                 />
 
                 {elimLeaderboard && (
-                  <GameCard
-                    className="bg-blue-600/10 w-full"
-                    from="Leaderboard"
-                    fromColor="text-blue-600"
-                  >
-                    <div>
-                      {elimLeaderboard?.slice(0, 5).map((part, index) => (
-                        <div
-                          className={
-                            index === 0
-                              ? 'sm:text-2xl text-lg'
-                              : 'sm:text-lg text-base'
-                          }
-                          key={part.id}
-                        >
-                          {leaderIcons[index] != null
-                            ? leaderIcons[index]
-                            : `${index + 1}.`}{' '}
-                          <span className="font-bold">
-                            {part.user.firstName} {part.user.lastName}
-                          </span>{' '}
-                          ({part.eliminatedTargets.length} pins)
-                        </div>
-                      ))}
-                      {!elimLeaderboard
-                        ?.slice(0, 5)
-                        .find((p) => p.userId == user.id) && (
-                        <div className="sm:text-lg text-base">
-                          {elimLeaderboard
-                            .map((p) => p.userId)
-                            .indexOf(user.id) + 1}
-                          .{' '}
-                          <span className="font-bold">
-                            {user.firstName} {user.lastName}
-                          </span>{' '}
-                          ({participant.eliminatedTargets.length} pins)
-                        </div>
-                      )}
-                    </div>
-                  </GameCard>
+                  <GameStatsCards
+                    actionLogs={game.actionLogs}
+                    elimLeaderboard={elimLeaderboard}
+                    participant={participant}
+                    user={user}
+                  />
                 )}
-
-                {elimLeaderboard && (
-                  <GameCard
-                    className="bg-blue-600/10 w-full"
-                    from="Game Log"
-                    fromColor="text-blue-600"
-                  >
-                    <ul className="text-md sm:text-base">
-                      {game.actionLogs.map((log) => (
-                        <li key={log.id}>
-                          ❌ {log.user?.firstName} {log.user?.lastName}{' '}
-                          <span className="text-red-500">pinned</span>{' '}
-                          {
-                            elimLeaderboard.find((p) => p.id === log.targetId)
-                              ?.user.firstName
-                          }{' '}
-                          {
-                            elimLeaderboard.find((p) => p.id === log.targetId)
-                              ?.user.lastName
-                          }
-                        </li>
-                      ))}
-                    </ul>
-                  </GameCard>
-                )}
-
-                <GameCard
-                  className="bg-blue-600/10 hidden"
-                  from="Leaderboard"
-                  fromColor="text-blue-600"
-                >
-                  Your task is to pin{' '}
-                  <span className="text-blue-600">
-                    {userToFullName(targetUser)}
-                  </span>
-                  . Once you pin them, you must ask them who their target is.
-                  You will need to verify their next target here to eliminate
-                  them.
-                </GameCard>
               </div>
             ) : (
-              <div className="flex flex-col gap-4">
-                <div className="mt-4">
-                  <span className="text-red-500">
-                    You&apos;ve been eliminated.
-                  </span>{' '}
+              <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
+                <div className="mt-4 col-span-2">
+                  <span className="text-red-500">You&apos;ve been pinned.</span>{' '}
                   {game.aliveCount}/{game.participantCount} competitors remain.
                 </div>
 
                 <GameCard
-                  className="bg-red-600/20"
+                  className="bg-red-600/20 col-span-2"
                   from="FBI Director Kim"
-                  fromColor="text-red-600"
+                  fromColor="text-red-500"
                 >
                   <span className="text-red-500">Agent {user.firstName}</span>,
-                  you were eliminated
+                  you were pinned
                   {participant.eliminatedById ? (
                     <>
                       by{' '}
@@ -198,50 +121,24 @@ export default async function GamePage({
                   Keep your eyes peeled for a revival round!
                 </GameCard>
 
-                <div className="bg-purple-600/10 border-2 border-purple-600 p-6 mt-4 relative">
-                  <div>
-                    <div className="flex gap-4">
-                      <div className="">
-                        <Image
-                          src="/thijs.jpg"
-                          width={200}
-                          height={200}
-                          alt="Photo of target"
-                          className="filter grayscale"
-                        />
-                      </div>
-                      <div className="text-xl flex flex-col">
-                        <div className="font-bold text-2xl mb-2 uppercase">
-                          AGENT {userToFullName(user)}
-                        </div>
-                        <div>
-                          <b>NAME:</b>
-                        </div>
-                        <div>
-                          <b>GRADE:</b>
-                        </div>
-                        <div>
-                          <b>ELIMINATIONS:</b>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="absolute bottom-1 right-1">
-                    <div className="font-bold text-2xl border-2 px-2 border-purple-600">
-                      PINTAG-{new Date().getFullYear()}
-                    </div>
-                  </div>
-                </div>
+                {elimLeaderboard && (
+                  <GameStatsCards
+                    actionLogs={game.actionLogs}
+                    elimLeaderboard={elimLeaderboard}
+                    participant={participant}
+                    user={user}
+                  />
+                )}
               </div>
             )
           ) : (
-            <div className="flex flex-col gap-4">
-              <div className="mt-4">
+            <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
+              <div className="mt-4 col-span-2">
                 {game.participantCount} participants have joined!
               </div>
 
               <GameCard
-                className="bg-green-600/10"
+                className="bg-green-600/10 col-span-2"
                 from="FBI Director Kim"
                 fromColor="text-green-500"
               >
@@ -253,7 +150,7 @@ export default async function GamePage({
               </GameCard>
 
               <GameCard
-                className="bg-blue-600/10"
+                className="bg-blue-600/10 col-span-2"
                 from="Mission Tracker"
                 fromColor="text-blue-600"
               >
@@ -268,5 +165,103 @@ export default async function GamePage({
         <div></div>
       </div>
     </div>
+  );
+}
+
+type ActionLogWithUser = Prisma.ActionLogGetPayload<{
+  include: {
+    user: true;
+  };
+}>;
+
+type ParticipantForLeaderboard = Prisma.ParticipantGetPayload<{
+  include: {
+    user: true;
+    eliminatedTargets: true;
+  };
+}>;
+
+type SelfParticipant = Prisma.ParticipantGetPayload<{
+  include: {
+    target: { include: { user: true; eliminatedTargets: true } };
+    eliminatedBy: { include: { user: true } };
+    eliminatedTargets: { include: { user: true } };
+  };
+}>;
+
+export function GameStatsCards({
+  actionLogs,
+  elimLeaderboard,
+  participant,
+  user,
+}: {
+  actionLogs: ActionLogWithUser[];
+  elimLeaderboard: ParticipantForLeaderboard[];
+  participant: SelfParticipant;
+  user: User;
+}) {
+  return (
+    <>
+      {elimLeaderboard && (
+        <GameCard
+          className="bg-blue-600/10 w-full"
+          from="Leaderboard"
+          fromColor="text-blue-600"
+        >
+          <div>
+            {elimLeaderboard?.slice(0, 5).map((part, index) => (
+              <div
+                className={
+                  index === 0 ? 'sm:text-2xl text-lg' : 'sm:text-lg text-base'
+                }
+                key={part.id}
+              >
+                {leaderIcons[index] != null
+                  ? leaderIcons[index]
+                  : `${index + 1}.`}{' '}
+                <span className="font-bold">
+                  {part.user.firstName} {part.user.lastName}
+                </span>{' '}
+                ({part.eliminatedTargets.length} pins)
+              </div>
+            ))}
+            {!elimLeaderboard?.slice(0, 5).find((p) => p.userId == user.id) && (
+              <div className="sm:text-lg text-base">
+                {elimLeaderboard.map((p) => p.userId).indexOf(user.id) + 1}.{' '}
+                <span className="font-bold">
+                  {user.firstName} {user.lastName}
+                </span>{' '}
+                ({participant.eliminatedTargets.length} pins)
+              </div>
+            )}
+          </div>
+        </GameCard>
+      )}
+
+      {elimLeaderboard && (
+        <GameCard
+          className="bg-blue-600/10 w-full"
+          from="Game Log"
+          fromColor="text-blue-600"
+        >
+          <ul className="text-md sm:text-base">
+            {actionLogs.map((log) => (
+              <li key={log.id}>
+                ❌ {log.user?.firstName} {log.user?.lastName}{' '}
+                <span className="text-red-500">pinned</span>{' '}
+                {
+                  elimLeaderboard.find((p) => p.id === log.targetId)?.user
+                    .firstName
+                }{' '}
+                {
+                  elimLeaderboard.find((p) => p.id === log.targetId)?.user
+                    .lastName
+                }
+              </li>
+            ))}
+          </ul>
+        </GameCard>
+      )}
+    </>
   );
 }
