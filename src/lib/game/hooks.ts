@@ -40,9 +40,11 @@ export async function getGameStatus(gameId: string, userId?: string) {
     include: {
       participants: true,
       actionLogs: {
-        take: 5,
-        orderBy: { timestamp: 'desc' },
-        where: { type: ActionLogType.ELIMINATE, userId: { not: null } },
+        where: {
+          type: ActionLogType.ELIMINATE,
+          participantId: { not: null },
+          targetId: { not: null },
+        },
         include: {
           user: true,
         },
@@ -119,3 +121,8 @@ export function gradYearToGrade(gradYear: number) {
 }
 
 export async function getLatestPins(gameId: string) {}
+
+export function getAvatarUrl(avatarId?: string | null) {
+  if (avatarId == null) return null;
+  return `https://bbk12e1-cdn.myschoolcdn.com/ftpimages/200/user/${avatarId}?resize=200,200`;
+}

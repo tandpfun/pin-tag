@@ -19,6 +19,7 @@ import Image from 'next/image';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminModal, { ModalParams } from './AdminModal';
+import { getAvatarUrl } from '@/lib/game/hooks';
 
 type ConfigPage = 'control' | 'participants' | 'log' | 'stats';
 
@@ -492,7 +493,10 @@ export function ParticipantTable({
               >
                 <td className="px-4 py-2">
                   <Image
-                    src="/thijs.jpg"
+                    src={
+                      getAvatarUrl(participant.user.avatar) ||
+                      '/empty_avatar.jpeg'
+                    }
                     width={256}
                     height={256}
                     alt="Photo of target"

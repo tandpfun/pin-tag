@@ -14,6 +14,13 @@ const nextConfig = {
   experimental: {
     esmExternals: false,
   },
+  images: {
+    remotePatterns: [
+      {
+        hostname: 'bbk12e1-cdn.myschoolcdn.com',
+      },
+    ],
+  },
 };
 
 module.exports = nextConfig;

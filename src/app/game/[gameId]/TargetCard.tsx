@@ -1,6 +1,6 @@
 'use client';
 
-import { gradYearToGrade } from '@/lib/game/hooks';
+import { getAvatarUrl, gradYearToGrade } from '@/lib/game/hooks';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
@@ -22,6 +22,7 @@ export default function TargetCard({
   targetId,
   firstName,
   lastName,
+  avatar,
   gradYear,
   eliminationCount,
 }: {
@@ -29,6 +30,7 @@ export default function TargetCard({
   targetId?: string;
   firstName?: string;
   lastName?: string;
+  avatar?: string;
   gradYear?: number;
   eliminationCount?: number;
 }) {
@@ -100,7 +102,7 @@ export default function TargetCard({
           <div className="">
             <div className="w-24 h-24 sm:w-48 sm:h-48 relative">
               <Image
-                src="/thijs.jpg"
+                src={getAvatarUrl(avatar) || '/empty_avatar.jpeg'}
                 width={256}
                 height={256}
                 alt="Photo of target"

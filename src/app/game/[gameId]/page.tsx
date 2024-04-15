@@ -245,20 +245,31 @@ export function GameStatsCards({
           fromColor="text-blue-600"
         >
           <ul className="text-md sm:text-base">
-            {actionLogs.map((log) => (
-              <li key={log.id}>
-                ❌ {log.user?.firstName} {log.user?.lastName}{' '}
-                <span className="text-red-500">pinned</span>{' '}
-                {
-                  elimLeaderboard.find((p) => p.id === log.targetId)?.user
-                    .firstName
-                }{' '}
-                {
-                  elimLeaderboard.find((p) => p.id === log.targetId)?.user
-                    .lastName
-                }
-              </li>
-            ))}
+            {actionLogs
+              .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+              .slice(0, 5)
+              .map((log) => (
+                <li key={log.id}>
+                  ❌{' '}
+                  {
+                    elimLeaderboard.find((p) => p.id === log.participantId)
+                      ?.user.firstName
+                  }{' '}
+                  {
+                    elimLeaderboard.find((p) => p.id === log.participantId)
+                      ?.user.lastName
+                  }{' '}
+                  <span className="text-red-500">pinned</span>{' '}
+                  {
+                    elimLeaderboard.find((p) => p.id === log.targetId)?.user
+                      .firstName
+                  }{' '}
+                  {
+                    elimLeaderboard.find((p) => p.id === log.targetId)?.user
+                      .lastName
+                  }
+                </li>
+              ))}
           </ul>
         </GameCard>
       )}
