@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+    pull_policy: build
     ports:
       - "2194:3000"
     environment:
@@ -18,6 +19,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+    pull_policy: build
     command: 'pnpm migrate deploy'
     environment:
       DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
@@ -29,6 +31,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+    pull_policy: build
     command: 'pnpm studio'
     environment:
       DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
