@@ -29,6 +29,8 @@ export async function requestElimination({
   return { success: true };
 }
 
+const eliminatedRecently = new Set();
+
 export async function eliminateTarget({
   targetId,
   gameId,
@@ -49,6 +51,10 @@ export async function eliminateTarget({
   });
 
   if (!participant) return { error: 'Invalid game' };
+  if (eliminatedRecently.has(participant.id))
+    return {
+      error: 'You eliminated someone too recently. Try again in 5 minutes.',
+    };
   if (!participant.target?.target)
     return { error: 'Target does not have a target' };
 
@@ -94,6 +100,9 @@ export async function eliminateTarget({
   };
 
   const update = await updateParticipants([updatedTarget, updatedParticipant]);
+
+  eliminatedRecently.add(participant.id);
+  setTimeout(() => eliminatedRecently.delete(participant.id), 1000 * 60 * 5);
 
   return { success: true };
 }
