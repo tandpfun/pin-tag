@@ -10,9 +10,15 @@ export async function POST(request: Request) {
   const body = await request.json().catch((_) => null);
   if (!body) return Response.json({ error: 'Invalid body' }, { status: 400 });
 
-  const { email, firstName, lastName, gradYear }: User = body;
+  const { email, firstName, lastName, gradYear, avatar }: User = body;
 
-  const user = await createUser({ email, firstName, lastName, gradYear });
+  const user = await createUser({
+    email,
+    firstName,
+    lastName,
+    gradYear: gradYear,
+    avatar,
+  });
 
   // Next, create an authentication token for the user
   const createdToken = await generateAuthToken(user.id);

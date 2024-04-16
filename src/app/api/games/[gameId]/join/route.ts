@@ -8,11 +8,17 @@ export async function POST(
   request: Request,
   { params }: { params: { gameId: string } }
 ) {
-  // Make sure the user is logged in
-  const auth = await userAuth();
-  if (!auth) return Response.json({ error: 'Unauthorized' }, { status: 403 });
+  // Check for API token
+  const token = request.headers.get('Authorization');
+  if (!token || token !== `Bearer ${process.env.API_TOKEN}`)
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { gameId } = params;
+
+  const body = await request.json().catch((_) => null);
+  if (!body) return Response.json({ error: 'Invalid body' }, { status: 400 });
+
+  const { userId }: { userId: string } = body;
 
   const game = await await prisma.game.findUnique({
     where: { id: gameId },
@@ -27,12 +33,12 @@ export async function POST(
   // Create a participant within the game
   const participant = await createParticipant({
     gameId: game.id,
-    userId: auth.id,
+    userId: userId,
   });
 
   // Add default game to the user
   await updateUser({
-    id: auth.id,
+    id: userId,
     activeGameId: game.id,
   });
 

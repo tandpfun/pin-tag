@@ -30,7 +30,7 @@ export default function TargetCard({
   targetId?: string;
   firstName?: string;
   lastName?: string;
-  avatar?: string;
+  avatar?: string | null;
   gradYear?: number;
   eliminationCount?: number;
 }) {
@@ -147,7 +147,7 @@ export default function TargetCard({
       {/* Elimination Modal */}
       {showBlackOverlay && (
         <div
-          className="w-screen h-screen fixed inset-0 bg-black/40 backdrop-blur-sm"
+          className="w-screen h-screen fixed inset-0 bg-black/40 backdrop-blur-sm z-10"
           onClick={(e) =>
             e.target === e.currentTarget ? setShowElimModal(false) : null
           }

@@ -77,6 +77,7 @@ export default async function GamePage({
                 <TargetCard
                   firstName={targetUser?.firstName}
                   lastName={targetUser?.lastName}
+                  avatar={targetUser?.avatar}
                   gradYear={targetUser?.gradYear}
                   eliminationCount={
                     participant.target?.eliminatedTargets.length

@@ -9,6 +9,7 @@
     "migrate": "pnpm dotenv -e .env.local -- prisma migrate",
     "studio": "dotenv -e .env.local -- prisma studio",
     "email-preview": "email preview ./src/email --port 3001",
+    "map-emails": "dotenv -e .env.local -- node ./src/scripts/map-emails.js",
     "start": "next start",
     "lint": "next lint"
   },
