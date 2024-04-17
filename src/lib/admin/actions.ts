@@ -124,6 +124,7 @@ export async function eliminateParticipant({
     });
     await sendEliminationEmail({
       user: participant.user,
+      gameId: participant.gameId,
     });
   }
 
