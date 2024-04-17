@@ -35,9 +35,11 @@ function gradYearToGrade(gradYear: number) {
 export const Template = ({
   name = 'Thijs',
   assassin,
+  eliminationLink,
 }: {
   name: string;
   assassin?: { firstName: string; lastName: string; gradYear: number };
+  eliminationLink: string;
 }) => (
   <Tailwind production>
     <Head>
@@ -80,9 +82,19 @@ export const Template = ({
                   <br />
                 </>
               )}
+              Open your{' '}
+              <Button
+                href={eliminationLink}
+                className="text-blue-500 underline font-bold"
+              >
+                <u>mission portal</u>
+              </Button>{' '}
+              for more information.
+              <br />
+              <br />
               Better luck next time,
               <br />
-              <span className="text-red-500">FBI Directors Nate & Mateus</span>
+              <span className="text-red-500">Pin-Tag Organizers</span>
             </Text>
           </Column>
         </Row>

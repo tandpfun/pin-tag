@@ -88,9 +88,7 @@ export const Template = ({
               <br />
               Best of luck,
               <br />
-              <span className="text-green-500">
-                FBI Directors Nate & Mateus
-              </span>
+              <span className="text-green-500">Pin-Tag Organizers</span>
             </Text>
           </Column>
         </Row>

@@ -67,6 +67,7 @@ export async function sendTargetEmail({
 
   mailQueue.push({
     from: 'game@pintag.thijs.gg',
+    replyTo: 'pintag@thijs.gg',
     sender: {
       name: 'LWHS PIN-TAG',
       address: 'game@pintag.thijs.gg',
@@ -82,19 +83,29 @@ export async function sendTargetEmail({
 export async function sendEliminationEmail({
   user,
   assassinUser,
+  gameId,
 }: {
   user: User;
   assassinUser?: User;
+  gameId: string;
 }) {
+  const authToken = await prisma.authToken.findUnique({
+    where: { userId: user.id },
+  });
+
+  const eliminationLink = `http://localhost:3000/api/auth/magic?t=${authToken?.token}&g=${gameId}`;
+
   const emailHtml = await render(
     EliminationEmail({
       name: user.firstName,
       assassin: assassinUser,
+      eliminationLink,
     })
   );
 
   mailQueue.push({
     from: 'game@pintag.thijs.gg',
+    replyTo: 'pintag@thijs.gg',
     sender: {
       name: 'LWHS PIN-TAG',
       address: 'game@pintag.thijs.gg',

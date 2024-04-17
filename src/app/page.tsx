@@ -34,16 +34,23 @@ export default async function Home() {
               </div>
             )
           ) : (
-            <div>
-              <div>Log in with your LWHS email to enter.</div>
-              <button className="bg-green-600/10 text-green-600 px-5 py-2 mt-4 hover:bg-green-600/20 transition border-2 border-green-600">
-                Login with Google
-              </button>
+            <div className="max-w-2xl">
+              <div className="font-bold">
+                Welcome to Lick-Wilmerding High School&apos;s annual pin tag
+                game!
+              </div>
+              <div className="mt-2">
+                Click the &quot;mission portal&quot; button in any email from
+                the game to log in to your mission portal.
+              </div>
             </div>
           )}
         </div>
         <div className="mt-48">
           Designed and developed by Thijs Simonian &apos;24
+        </div>
+        <div className="mt-2 text-gray-300 text-sm">
+          Email 24thijs.simonian@lwhs.org for help.
         </div>
       </div>
     </div>

@@ -74,6 +74,7 @@ export async function eliminateTarget({
   await sendEliminationEmail({
     user: participant.target.user,
     assassinUser: user,
+    gameId,
   });
 
   // Create action log
