@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    pull_policy: build
     ports:
       - "2194:3000"
     environment:
@@ -14,12 +13,10 @@ services:
       database:
         condition: service_healthy
 
-
   migrate:
     build:
       context: .
       dockerfile: ./Dockerfile
-    pull_policy: build
     command: 'pnpm migrate deploy'
     environment:
       DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
@@ -31,7 +28,6 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    pull_policy: build
     command: 'pnpm studio'
     environment:
       DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
@@ -47,6 +43,7 @@ services:
       POSTGRES_USER: "pin-tag"
       POSTGRES_PASSWORD: "pin-tag"
       POSTGRES_DB: "pin-tag"
+      PGUSER: "pin-tag"
     volumes:
       - "postgres_data:/var/lib/postgresql/data"
     restart: always
