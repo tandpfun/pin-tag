@@ -52,7 +52,7 @@ export async function sendTargetEmail({
     where: { userId: user.id },
   });
 
-  const eliminationLink = `http://localhost:3000/api/auth/magic?t=${authToken?.token}&g=${gameId}&a=eliminate`;
+  const eliminationLink = `${process.env.BASE_URL}/api/auth/magic?t=${authToken?.token}&g=${gameId}&a=eliminate`;
 
   const emailHtml = await render(
     TargetEmail({

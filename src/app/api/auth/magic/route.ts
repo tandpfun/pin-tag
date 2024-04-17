@@ -18,11 +18,12 @@ export async function GET(request: Request) {
 
   if (!user) return Response.json({ error: 'Invalid token' }, { status: 400 });
 
-  const redirectUrl = new URL('/game/' + gameId, request.url).toString();
-
-  const response = NextResponse.redirect(redirectUrl, {
-    status: 302,
-  });
+  const response = NextResponse.redirect(
+    `${process.env.BASE_URL}/game/${gameId}`,
+    {
+      status: 302,
+    }
+  );
 
   response.cookies.set('token', token, {
     path: '/',

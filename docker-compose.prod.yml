@@ -5,6 +5,9 @@ services:
       - "2194:3000"
     environment:
       DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
+      SMTP_PASSWORD: "${SMTP_PASSWORD}"
+      API_TOKEN: "${API_TOKEN}"
+      BASE_URL: "${BASE_URL}"
     depends_on:
       migrate:
         condition: service_completed_successfully
