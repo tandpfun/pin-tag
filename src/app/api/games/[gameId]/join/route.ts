@@ -3,6 +3,8 @@ import { userAuth } from '@/lib/auth/hooks';
 import { createGame, createParticipant } from '@/lib/game/database';
 import { Game, Role } from '@prisma/client';
 
+import prisma from '../../../../../lib/prisma';
+
 // Adds a user to a game
 export async function POST(
   request: Request,
