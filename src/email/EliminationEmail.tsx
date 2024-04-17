@@ -70,14 +70,13 @@ export const Template = ({
               ) : (
                 'one of the event organizers'
               )}
-              .
+              . Feel free to reply to this email with any concerns or questions.
               <br />
               <br />
               {assassin && (
                 <>
                   We may offer a revival round in the future! Check your email
-                  often so you don&apos;t miss it. Feel free to reply to this
-                  email with any concerns or questions.
+                  often so you don&apos;t miss it.
                   <br />
                   <br />
                 </>
