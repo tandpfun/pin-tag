@@ -8,28 +8,33 @@ import { Template as EliminationEmail } from '@/email/EliminationEmail';
 import Mail from 'nodemailer/lib/mailer';
 import prisma from '../prisma';
 
+import { ThrottledQueue } from '@benricheson101/ts-util/lib/struct/throttledQueue';
+
 const transport = nodemailer.createTransport({
-  host: 'smtp.mailgun.org',
+  host: 'smtp.resend.com',
   port: 465,
   secure: true,
   auth: {
-    user: 'postmaster@pintag.thijs.gg',
+    user: 'resend',
     pass: process.env.SMTP_PASSWORD,
   },
 });
 
-// Email queueing system to circumvent rate-limits
-const emailQueue = new Set<Mail.Options>();
-setInterval(async () => {
-  const nextEmail = emailQueue.values().next().value;
-  emailQueue.delete(nextEmail);
+const mailQueue = new ThrottledQueue<Mail.Options>({
+  handler: async (data) => {
+    console.log('Emailing', data.to);
 
-  if (nextEmail) {
-    await transport
-      .sendMail(nextEmail)
-      .catch((err) => console.error(`[EMAIL ERROR] ${err.message}`));
-  }
-}, 1000);
+    await transport.sendMail(data).catch((err) => {
+      console.error(
+        `[EMAIL ERROR] Failed to email ${data.to}.\n${err.message}\nRetrying in 30 seconds...`
+      );
+      setTimeout(() => {
+        mailQueue.push(data);
+      }, 30000);
+    });
+  },
+  timeout: 1000,
+});
 
 export async function sendTargetEmail({
   user,
@@ -60,7 +65,7 @@ export async function sendTargetEmail({
     })
   );
 
-  emailQueue.add({
+  mailQueue.push({
     from: 'game@pintag.thijs.gg',
     sender: {
       name: 'LWHS PIN-TAG',
@@ -88,7 +93,7 @@ export async function sendEliminationEmail({
     })
   );
 
-  emailQueue.add({
+  mailQueue.push({
     from: 'game@pintag.thijs.gg',
     sender: {
       name: 'LWHS PIN-TAG',

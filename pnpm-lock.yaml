@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@benricheson101/ts-util':
+    specifier: github:benricheson101/ts-util
+    version: github.com/benricheson101/ts-util/bf762590f0ff42f1c8c4479d44a330c9d9a973ad
   '@faker-js/faker':
     specifier: ^8.3.1
     version: 8.3.1
@@ -6841,4 +6844,10 @@ packages:
 
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
+    dev: false
+
+  github.com/benricheson101/ts-util/bf762590f0ff42f1c8c4479d44a330c9d9a973ad:
+    resolution: {tarball: https://codeload.github.com/benricheson101/ts-util/tar.gz/bf762590f0ff42f1c8c4479d44a330c9d9a973ad}
+    name: '@benricheson101/ts-util'
+    version: 0.0.0
     dev: false
