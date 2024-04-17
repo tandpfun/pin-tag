@@ -1,5 +1,6 @@
 services:
   website:
+    image: ghcr.io/tandpfun/pin-tag:latest
     ports:
       - "2194:3000"
     environment:
@@ -11,6 +12,7 @@ services:
         condition: service_healthy
 
   migrate:
+    image: ghcr.io/tandpfun/pin-tag:latest
     command: 'pnpm migrate deploy'
     environment:
       DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
@@ -19,6 +21,7 @@ services:
         condition: service_healthy
 
   studio:
+    image: ghcr.io/tandpfun/pin-tag:latest
     command: 'pnpm studio'
     environment:
       DATABASE_URL: "postgres://pin-tag:pin-tag@database:5432/pin-tag"
