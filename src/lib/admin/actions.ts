@@ -236,7 +236,7 @@ export async function emailTargets({ gameId }: { gameId: string }) {
   });
   if (!game) return { error: 'Game not found' };
 
-  if (game.isActive) return { error: 'Game must be started' };
+  if (!game.isActive) return { error: 'Game must be started' };
 
   if (game.participants.length < 1)
     return { error: 'Must have at least 1 participant' };

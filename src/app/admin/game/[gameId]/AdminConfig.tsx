@@ -229,7 +229,6 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                 </div>
                 <button
                   className={`transition text-base font-bold py-2 px-4 mt-3 bg-red-600 hover:bg-red-600/80`}
-                  disabled={game.isActive}
                   onClick={() =>
                     setModal({
                       show: true,
