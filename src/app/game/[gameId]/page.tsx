@@ -52,7 +52,7 @@ export default async function GamePage({
 
   return (
     <div className="w-screen justify-center flex">
-      <div className="max-w-5xl w-full mt-4 sm:mt-12 px-4">
+      <div className="max-w-5xl w-full my-4 sm:my-12 px-4">
         <div>
           <h1 className="text-3xl sm:text-5xl font-bold">{game.name}</h1>
           {game.isActive ? (

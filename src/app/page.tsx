@@ -7,7 +7,7 @@ export default async function Home() {
   const user = await userAuth();
 
   return (
-    <div className="w-screen h-screen flex justify-center items-center text-center">
+    <div className="w-screen h-screen flex justify-center items-center text-center px-4">
       <div>
         <h1 className="font-bold text-6xl sm:text-9xl border-2 px-2 border-green-600 w-fit mx-auto">
           PINTAG
