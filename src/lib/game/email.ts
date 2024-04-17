@@ -7,8 +7,7 @@ import { Template as TargetEmail } from '@/email/TargetEmail';
 import { Template as EliminationEmail } from '@/email/EliminationEmail';
 import Mail from 'nodemailer/lib/mailer';
 import prisma from '../prisma';
-
-import { ThrottledQueue } from '@benricheson101/ts-util/lib/struct/throttledQueue';
+import { ThrottledQueue } from '../util/ThrottledQueue';
 
 const transport = nodemailer.createTransport({
   host: 'smtp.resend.com',
