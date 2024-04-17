@@ -13,6 +13,9 @@ const nextConfig = {
   },
   experimental: {
     esmExternals: false,
+    serverActions: {
+      allowedOrigins: ['pintag.thijs.gg'],
+    },
   },
   images: {
     remotePatterns: [
