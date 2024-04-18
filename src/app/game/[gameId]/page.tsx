@@ -12,6 +12,7 @@ import { Participant, Prisma, User } from '@prisma/client';
 import GameCard from './GameCard';
 import { render } from 'jsx-email';
 import { Template } from '@/email/TargetEmail';
+import Link from 'next/link';
 
 function userToFullName(user?: User) {
   return `${user?.firstName} ${user?.lastName} '${user?.gradYear
@@ -136,13 +137,24 @@ export default async function GamePage({
                     Thank you so much for playing, and keep your eyes peeled for
                     a revival round!
                   </GameCard>
-                  <Image
-                    src={`/api/games/${game.id}/elimination-image`}
-                    className="sm:w-auto w-full"
-                    width={300}
-                    height={530}
-                    alt="Your PinTag ID Card"
-                  />
+                  <div className="flex-grow">
+                    <Image
+                      src={`/api/games/${game.id}/elimination-image`}
+                      className="sm:w-auto w-full border-dashed border-2 border-white"
+                      width={300}
+                      height={530}
+                      alt="Your PinTag ID Card"
+                    />
+                    <a
+                      download="pintag-wrapped.png"
+                      href={`/api/games/${game.id}/elimination-image`}
+                      title="PINTAG Wrapped"
+                    >
+                      <button className="w-full p-2 bg-red-600/40 mt-2 text-red-500">
+                        Download
+                      </button>
+                    </a>
+                  </div>
                 </div>
 
                 {elimLeaderboard && (
