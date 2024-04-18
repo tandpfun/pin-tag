@@ -1,5 +1,6 @@
 import { userAuth } from '@/lib/auth/hooks';
 import { updateParticipants } from '@/lib/game/database';
+import prisma from '@/lib/prisma';
 import { Participant, Role } from '@prisma/client';
 
 export async function POST(

@@ -102,25 +102,48 @@ export default async function GamePage({
                   {game.aliveCount}/{game.participantCount} competitors remain.
                 </div>
 
-                <GameCard
-                  className="bg-red-600/20 col-span-2"
-                  from="FBI Director Kim"
-                  fromColor="text-red-500"
-                >
-                  <span className="text-red-500">Agent {user.firstName}</span>,
-                  you were pinned
-                  {participant.eliminatedById ? (
-                    <>
-                      by{' '}
-                      <span className="text-red-500">
-                        {userToFullName(participant.eliminatedBy?.user)}
-                      </span>
-                    </>
-                  ) : null}
-                  . You got{' '}
-                  {participant.place + nthNumber(participant.place || 0)} place.
-                  Keep your eyes peeled for a revival round!
-                </GameCard>
+                <div className="flex flex-col md:flex-row col-span-2 gap-4">
+                  <GameCard
+                    className="bg-red-600/20 col-span-2"
+                    from="FBI Director Kim"
+                    fromColor="text-red-500"
+                  >
+                    <span className="text-red-500">Agent {user.firstName}</span>
+                    , you were pinned
+                    {participant.eliminatedById ? (
+                      <>
+                        {' '}
+                        by{' '}
+                        <span className="text-red-500">
+                          {userToFullName(participant.eliminatedBy?.user)}
+                        </span>
+                      </>
+                    ) : null}
+                    . You got{' '}
+                    <span className="text-red-500">
+                      {participant.place + nthNumber(participant.place || 0)}{' '}
+                      place
+                    </span>
+                    !
+                    <br />
+                    <br />
+                    Share this awesome{' '}
+                    <span className="text-red-500">PINTAG Wrapped™️</span> image
+                    on your Instagram story (or any other social media) to show
+                    off your score.
+                    <br />
+                    <br />
+                    Thank you so much for playing, and keep your eyes peeled for
+                    a revival round!
+                  </GameCard>
+                  <Image
+                    src={`/api/games/${game.id}/elimination-image`}
+                    className="sm:w-auto w-full"
+                    width={300}
+                    height={530}
+                    alt="Your PinTag ID Card"
+                  />
+                </div>
 
                 {elimLeaderboard && (
                   <GameStatsCards

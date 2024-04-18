@@ -79,7 +79,8 @@ export async function getGameStatus(gameId: string, userId?: string) {
 
   const place =
     eliminatedParticipants.findIndex((p) => p.id === participant.id) +
-    aliveCount;
+    aliveCount +
+    1;
 
   return {
     game: {
