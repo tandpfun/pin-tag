@@ -139,7 +139,7 @@ export default async function GamePage({
                   </GameCard>
                   <div className="flex-grow">
                     <Image
-                      src={`/api/games/${game.id}/elimination-image`}
+                      src={`/api/games/${game.id}/elimination-image?user=${user.id}`}
                       className="sm:w-auto w-full border-dashed border-2 border-white"
                       width={300}
                       height={530}
