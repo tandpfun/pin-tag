@@ -1,3 +1,6 @@
+// pnpm tsc '/Users/thijs/Documents/projects/pin-tag/packages/website/src/scripts/map-emails.ts'
+// yarn map-emails import_file blackbaud_file pintag_domain game_id
+
 import { readFileSync, writeFileSync } from 'fs';
 
 const main = async () => {
@@ -16,7 +19,34 @@ const main = async () => {
 
   const emailsToAvatar = JSON.parse(readFileSync(args[1], 'utf-8'));
 
-  console.log(usersToImport);
+  // Find non matching names to emails
+  const nonMatching = usersToImport
+    .filter(
+      (user) =>
+        !emailsToAvatar[user.email] ||
+        emailsToAvatar[user.email].firstName !== user.firstName ||
+        emailsToAvatar[user.email].lastName !== user.lastName
+    )
+    .map((user) => ({
+      ...user,
+      preferredName:
+        emailsToAvatar[user.email]?.firstName +
+        ', ' +
+        emailsToAvatar[user.email]?.lastName,
+    }));
+
+  console.log('Non matching users:', nonMatching);
+
+  // Find duplicate emails
+  const duplicates = usersToImport.filter(
+    (u) => usersToImport.filter((u2) => u2.email === u.email).length > 1
+  );
+  if (duplicates.length > 0) {
+    console.log('Duplicate emails:', duplicates);
+    throw new Error('HAS DUPLICATES');
+  }
+
+  // return;
 
   const users = usersToImport.map((user) => ({
     ...user,
