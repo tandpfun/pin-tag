@@ -50,7 +50,7 @@ export default async function Home() {
           Designed and developed by Thijs Simonian &apos;24
         </div>
         <div className="mt-2 text-gray-300 text-sm">
-          Email pintag@thijs.gg for help.
+          Email pintag2024@gmail.com for help.
         </div>
       </div>
     </div>

@@ -66,7 +66,7 @@ export async function sendTargetEmail({
 
   mailQueue.push({
     from: 'game@pintag.thijs.gg',
-    replyTo: 'pintag@thijs.gg',
+    replyTo: 'pintag2024@gmail.com',
     sender: {
       name: 'LWHS PIN-TAG',
       address: 'game@pintag.thijs.gg',
@@ -104,7 +104,7 @@ export async function sendEliminationEmail({
 
   mailQueue.push({
     from: 'game@pintag.thijs.gg',
-    replyTo: 'pintag@thijs.gg',
+    replyTo: 'pintag2024@gmail.com',
     sender: {
       name: 'LWHS PIN-TAG',
       address: 'game@pintag.thijs.gg',
