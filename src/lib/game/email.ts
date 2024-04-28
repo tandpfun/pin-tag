@@ -32,7 +32,7 @@ const mailQueue = new ThrottledQueue<Mail.Options>({
       }, 30000);
     });
   },
-  timeout: 1000,
+  timeout: 250,
 });
 
 export async function sendTargetEmail({
