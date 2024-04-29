@@ -448,7 +448,6 @@ export function ParticipantTable({
   className?: string;
 }) {
   const [copiedEmails, setCopiedEmails] = useState<string[]>([]);
-  const [revealedTargets, setRevealedTargets] = useState<string[]>([]);
   function copyEmail(email: string) {
     try {
       navigator.clipboard.writeText(email);
