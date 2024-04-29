@@ -312,7 +312,7 @@ export async function shuffleTargets({ gameId }: { gameId: string }) {
 }
 
 function assignRandomTargets(participants: Participant[]) {
-  const shuffled = shuffleArray(participants);
+  const shuffled = shuffleArray([...participants]);
 
   const randomized = shuffled.map((participant, index) => ({
     ...participant,
