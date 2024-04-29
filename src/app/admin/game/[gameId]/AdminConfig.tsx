@@ -86,6 +86,15 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
   const [loader, setLoader] = useState<{ show: boolean; error: string }>();
   const [modal, setModal] = useState<ModalParams>();
 
+  function downloadText(text: string, filename: string) {
+    const blob = new Blob([text], { type: 'text/plain' });
+    const fileUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = fileUrl;
+    link.click();
+  }
+
   async function runAction<
     F extends (...args: any[]) => any,
     Args extends Parameters<F>
@@ -310,9 +319,25 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                   </div>
                 </div>
               </GameCard>
-              <div className="font-bold text-xl mt-4">
-                Alive Participants (
-                {game.participants.filter((p) => p.isAlive).length})
+              <div className="mt-4 flex flex-row items-center">
+                <div className="font-bold text-xl">
+                  Alive Participants (
+                  {game.participants.filter((p) => p.isAlive).length})
+                </div>
+                <button
+                  className="text-blue-500 text-sm ml-auto hover:underline"
+                  onClick={() =>
+                    downloadText(
+                      `participant,target\n${game.participants
+                        .filter((p) => p.isAlive)
+                        .map((p) => `${p.user.email},${p.target?.user.email}`)
+                        .join('\n')}`,
+                      `alive-participants.csv`
+                    )
+                  }
+                >
+                  Download
+                </button>
               </div>
               <ParticipantTable
                 participants={game.participants}
@@ -324,9 +349,27 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
               />
             </div>
             <div className="mt-8">
-              <div className="font-bold text-xl">
-                Eliminated Participants (
-                {game.participants.filter((p) => !p.isAlive).length})
+              <div className="mt-4 flex flex-row items-center">
+                <div className="font-bold text-xl">
+                  Eliminated Participants (
+                  {game.participants.filter((p) => !p.isAlive).length})
+                </div>
+                <button
+                  className="text-blue-500 text-sm ml-auto hover:underline"
+                  onClick={() =>
+                    downloadText(
+                      `participant,eliminated by\n${game.participants
+                        .filter((p) => !p.isAlive)
+                        .map(
+                          (p) => `${p.user.email},${p.eliminatedBy?.user.email}`
+                        )
+                        .join('\n')}`,
+                      `alive-participants.csv`
+                    )
+                  }
+                >
+                  Download
+                </button>
               </div>
               <ParticipantTable
                 participants={game.participants}
