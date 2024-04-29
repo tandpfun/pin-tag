@@ -448,6 +448,7 @@ export function ParticipantTable({
   className?: string;
 }) {
   const [copiedEmails, setCopiedEmails] = useState<string[]>([]);
+  const [revealedTargets, setRevealedTargets] = useState<string[]>([]);
   function copyEmail(email: string) {
     try {
       navigator.clipboard.writeText(email);
@@ -509,9 +510,14 @@ export function ParticipantTable({
                   {participant.user.firstName} {participant.user.lastName}
                 </th>
                 <td className="px-6 py-4">
-                  {type === 'alive'
-                    ? `${participant.target?.user.firstName} ${participant.target?.user.lastName}`
-                    : `${participant.eliminatedBy?.user.firstName} ${participant.eliminatedBy?.user.lastName}`}
+                  {type === 'alive' ? (
+                    <div className="px-1 py-0.5 w-fit bg-gray-900 text-gray-900 hover:text-white transition rounded-md cursor-pointer">
+                      {participant.target?.user.firstName}{' '}
+                      {participant.target?.user.lastName}
+                    </div>
+                  ) : (
+                    `${participant.eliminatedBy?.user.firstName} ${participant.eliminatedBy?.user.lastName}`
+                  )}
                 </td>
                 <td className="px-6 py-4">
                   {participant.eliminatedTargets.length}
