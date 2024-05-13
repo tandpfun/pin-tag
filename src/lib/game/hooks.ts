@@ -118,7 +118,7 @@ export async function getEliminationLeaderboard(gameId: string) {
 export function gradYearToGrade(gradYear: number) {
   const currentYear = new Date().getFullYear();
   const grades = ['Senior', 'Junior', 'Sophomore', 'Frosh'];
-  return grades[currentYear - gradYear];
+  return grades[gradYear - currentYear];
 }
 
 export async function getLatestPins(gameId: string) {}
