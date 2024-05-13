@@ -41,6 +41,21 @@ export default async function RootLayout({
 
         <div className="grid-pattern w-full h-full fixed top-0" />
         <div>{children}</div>
+        <div className="flex flex-col items-center mb-12 text-center">
+          <div className="">
+            Designed and developed by{' '}
+            <Link
+              href="https://portfolio.thijs.gg"
+              target="_blank"
+              className="hover:underline"
+            >
+              Thijs Simonian &apos;24
+            </Link>
+          </div>
+          <div className="mt-2 text-gray-300 text-sm">
+            Email pintag2024@gmail.com for help.
+          </div>
+        </div>
       </body>
     </html>
   );
