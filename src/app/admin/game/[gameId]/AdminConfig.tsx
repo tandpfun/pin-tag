@@ -332,7 +332,7 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                         .filter((p) => p.isAlive)
                         .map(
                           (p) =>
-                            `${p.user.email},${p.userId},${p.target?.user.email},${p.target?.userId}`
+                            `${p.user.email},${p.id},${p.target?.user.email},${p.target?.id}`
                         )
                         .join('\n')}`,
                       `alive-participants.csv`
@@ -365,7 +365,7 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                         .filter((p) => !p.isAlive)
                         .map(
                           (p) =>
-                            `${p.user.email},${p.userId},${p.eliminatedBy?.user.email},${p.eliminatedBy?.userId}`
+                            `${p.user.email},${p.id},${p.eliminatedBy?.user.email},${p.eliminatedBy?.id}`
                         )
                         .join('\n')}`,
                       `alive-participants.csv`
