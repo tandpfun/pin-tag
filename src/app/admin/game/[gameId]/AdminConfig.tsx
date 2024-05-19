@@ -328,9 +328,12 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                   className="text-blue-500 text-sm ml-auto hover:underline"
                   onClick={() =>
                     downloadText(
-                      `participant,target\n${game.participants
+                      `participant,participant id,target,target id\n${game.participants
                         .filter((p) => p.isAlive)
-                        .map((p) => `${p.user.email},${p.target?.user.email}`)
+                        .map(
+                          (p) =>
+                            `${p.user.email},${p.userId},${p.target?.user.email},${p.target?.userId}`
+                        )
                         .join('\n')}`,
                       `alive-participants.csv`
                     )
@@ -358,10 +361,11 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
                   className="text-blue-500 text-sm ml-auto hover:underline"
                   onClick={() =>
                     downloadText(
-                      `participant,eliminated by\n${game.participants
+                      `participant,participant id,eliminated by,eliminated by id\n${game.participants
                         .filter((p) => !p.isAlive)
                         .map(
-                          (p) => `${p.user.email},${p.eliminatedBy?.user.email}`
+                          (p) =>
+                            `${p.user.email},${p.userId},${p.eliminatedBy?.user.email},${p.eliminatedBy?.userId}`
                         )
                         .join('\n')}`,
                       `alive-participants.csv`
@@ -384,6 +388,27 @@ export default function AdminConfig({ game }: { game: GameWithEverything }) {
         )}
         {configPage === 'log' && (
           <div>
+            <div className="my-4 flex flex-row items-center">
+              <div className="font-bold text-xl">
+                Game Action Log ({game.actionLogs.length})
+              </div>
+              <button
+                className="text-blue-500 text-sm ml-auto hover:underline"
+                onClick={() =>
+                  downloadText(
+                    `timestamp,type,targetId,participantId,userId\n${game.actionLogs
+                      .map(
+                        (a) =>
+                          `${a.timestamp},${a.type},${a.targetId},${a.participantId},${a.userId}`
+                      )
+                      .join('\n')}`,
+                    `action-logs.csv`
+                  )
+                }
+              >
+                Download
+              </button>
+            </div>
             <ActionLogTable logs={game.actionLogs} game={game} />
           </div>
         )}
